@@ -170,7 +170,7 @@ Tracks individual components added to experiments.
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/quantum-chemistry-laboratory.git
+git clone https://github.com/strongfabandrepair/quantum-chemistry-laboratory.git
 cd quantum-chemistry-laboratory
 ```
 
