@@ -1,7 +1,6 @@
 import { Element, Compound } from './supabase';
 
 const R = 8.314;
-const AVOGADRO = 6.02214076e23;
 
 export interface MixtureState {
   components: Array<{

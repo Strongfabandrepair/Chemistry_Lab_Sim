@@ -73,7 +73,7 @@ export function ParameterControls({
                 onChange={(e) => setTempUnit(e.target.value as TemperatureUnit)}
                 className="bg-gray-800 border border-gray-600 rounded px-2 py-0.5 text-white text-xs"
               >
-                {Object.entries(temperatureUnits).map(([key, { name }]) => (
+                {Object.entries(temperatureUnits).map(([key]) => (
                   <option key={key} value={key}>{key}</option>
                 ))}
               </select>

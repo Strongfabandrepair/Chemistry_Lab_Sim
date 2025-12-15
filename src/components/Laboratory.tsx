@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { FlaskConical, Play, RotateCcw, AlertTriangle, Save } from 'lucide-react';
+import { FlaskConical, Play, RotateCcw, AlertTriangle } from 'lucide-react';
 import { PeriodicTable } from './PeriodicTable';
 import { VisualizationCanvas } from './VisualizationCanvas';
 import { ParameterControls } from './ParameterControls';
