@@ -329,8 +329,7 @@ Future enhancements planned:
 
 For issues, questions, or suggestions:
 - Open an issue on GitHub
-- Contact: [your-email@example.com]
-- Documentation: [link to docs]
+- Contact: fameous22@gmail.com
 
 ---
 
