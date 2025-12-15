@@ -93,6 +93,130 @@ export function PeriodicTable({ onElementSelect, selectedElements }: PeriodicTab
     }
   };
 
+  const getElementVisualStyle = (element: Element) => {
+    const baseColor = getElementColorRGB(element.color);
+
+    if (element.symbol === 'C') {
+      return {
+        background: `repeating-linear-gradient(0deg, #1a1a1a 0px, #1a1a1a 8px, #2d2d2d 8px, #2d2d2d 16px), repeating-linear-gradient(90deg, #1a1a1a 0px, #1a1a1a 8px, #2d2d2d 8px, #2d2d2d 16px)`,
+        backgroundBlendMode: 'multiply',
+        pattern: 'graphite',
+        description: 'Graphite - layered carbon sheets'
+      };
+    }
+
+    if (element.symbol === 'S') {
+      return {
+        background: `radial-gradient(circle at 20% 30%, #ffff00, #e6e600 40%, #cccc00)`,
+        pattern: 'crystalline-yellow',
+        description: 'Yellow crystalline solid'
+      };
+    }
+
+    if (element.symbol === 'I') {
+      return {
+        background: `linear-gradient(135deg, #4a0080 0%, #6a00b0 50%, #3a0060 100%)`,
+        pattern: 'crystalline-purple',
+        description: 'Purple-black lustrous crystals'
+      };
+    }
+
+    if (element.symbol === 'Br') {
+      return {
+        background: `radial-gradient(ellipse at center, #8b4513 0%, #654321 50%, #432110 100%)`,
+        pattern: 'liquid-reddish',
+        description: 'Reddish-brown fuming liquid'
+      };
+    }
+
+    if (element.symbol === 'Au') {
+      return {
+        background: `linear-gradient(135deg, #ffd700 0%, #ffed4e 40%, #ffd700 60%, #daa520 100%)`,
+        pattern: 'metallic-gold',
+        description: 'Shiny golden metallic'
+      };
+    }
+
+    if (element.symbol === 'Ag') {
+      return {
+        background: `linear-gradient(135deg, #e8e8e8 0%, #ffffff 40%, #e8e8e8 60%, #c0c0c0 100%)`,
+        pattern: 'metallic-silver',
+        description: 'Shiny silver-white metal'
+      };
+    }
+
+    if (element.symbol === 'Cu') {
+      return {
+        background: `linear-gradient(135deg, #d87e44 0%, #f0a060 40%, #d87e44 60%, #c06030 100%)`,
+        pattern: 'metallic-copper',
+        description: 'Reddish-brown metallic'
+      };
+    }
+
+    if (element.symbol === 'Hg') {
+      return {
+        background: `radial-gradient(ellipse at center, #c0c0c0 0%, #a8a8a8 30%, #909090 60%, #787878 100%)`,
+        pattern: 'liquid-metal',
+        description: 'Silvery liquid metal'
+      };
+    }
+
+    if (element.phase_at_stp === 'gas') {
+      return {
+        background: `radial-gradient(circle at 30% 30%, ${baseColor}40, ${baseColor}10)`,
+        pattern: 'gas',
+        description: 'Gaseous form - diffuse particles'
+      };
+    }
+
+    if (element.phase_at_stp === 'liquid') {
+      return {
+        background: `linear-gradient(135deg, ${baseColor}80 25%, ${baseColor}40 25%, ${baseColor}40 50%, ${baseColor}80 50%, ${baseColor}80 75%, ${baseColor}40 75%, ${baseColor}40)`,
+        backgroundSize: '20px 20px',
+        pattern: 'liquid',
+        description: 'Liquid form - flowing state'
+      };
+    }
+
+    if (element.group_block === 'd' || element.symbol === 'Al' || element.symbol === 'Ga' || element.symbol === 'In' || element.symbol === 'Sn' || element.symbol === 'Pb') {
+      return {
+        background: `linear-gradient(135deg, ${baseColor} 0%, #ffffff30 40%, ${baseColor} 60%, #00000020 100%)`,
+        pattern: 'metallic',
+        description: 'Metallic solid - lustrous and conductive'
+      };
+    }
+
+    if (element.group_number === 17) {
+      return {
+        background: `radial-gradient(circle at 50% 50%, ${baseColor}, ${baseColor}60)`,
+        pattern: 'halogen',
+        description: 'Halogen - reactive nonmetal'
+      };
+    }
+
+    if (element.group_number === 18) {
+      return {
+        background: `radial-gradient(ellipse at center, ${baseColor}20 0%, ${baseColor}05 70%, transparent 100%)`,
+        pattern: 'noble-gas',
+        description: 'Noble gas - inert and unreactive'
+      };
+    }
+
+    if (element.crystal_structure?.includes('cubic') || element.crystal_structure?.includes('hexagonal')) {
+      return {
+        background: `repeating-linear-gradient(45deg, ${baseColor}, ${baseColor} 10px, ${baseColor}80 10px, ${baseColor}80 20px)`,
+        pattern: 'crystalline',
+        description: `Crystalline solid - ${element.crystal_structure}`
+      };
+    }
+
+    return {
+      background: baseColor,
+      pattern: 'solid',
+      description: 'Solid form'
+    };
+  };
+
   if (loading) {
     return <div className="text-white text-center p-8">Loading periodic table...</div>;
   }
@@ -182,7 +306,7 @@ export function PeriodicTable({ onElementSelect, selectedElements }: PeriodicTab
               top: '50%',
               right: '20px',
               transform: 'translateY(-50%)',
-              width: '280px',
+              width: '300px',
               zIndex: 1000
             }}
           >
@@ -194,6 +318,35 @@ export function PeriodicTable({ onElementSelect, selectedElements }: PeriodicTab
               <div className="text-right">
                 <div className="text-xs text-gray-400">Atomic Number</div>
                 <div className="text-2xl font-bold text-white">{hoveredElement.id}</div>
+              </div>
+            </div>
+
+            <div className="mb-3">
+              <div className="text-xs text-gray-400 mb-2">Raw Material Appearance</div>
+              <div className="relative">
+                <div
+                  className="w-full h-24 rounded-lg border-2 border-gray-700 overflow-hidden"
+                  style={{
+                    background: getElementVisualStyle(hoveredElement).background,
+                    backgroundSize: getElementVisualStyle(hoveredElement).backgroundSize || 'cover'
+                  }}
+                >
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-center">
+                      <div
+                        className="w-12 h-12 mx-auto rounded-full mb-1 border-2"
+                        style={{
+                          backgroundColor: getElementColorRGB(hoveredElement.color),
+                          borderColor: hoveredElement.phase_at_stp === 'gas' ? '#4ADE80' : hoveredElement.phase_at_stp === 'liquid' ? '#60A5FA' : '#FFFFFF',
+                          boxShadow: `0 0 20px ${getElementColorRGB(hoveredElement.color)}80`
+                        }}
+                      />
+                      <div className="text-[10px] text-white/90 font-semibold bg-black/50 px-2 py-0.5 rounded backdrop-blur-sm">
+                        {getElementVisualStyle(hoveredElement).description}
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
