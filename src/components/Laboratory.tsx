@@ -1,10 +1,13 @@
 import { useState, useEffect, useMemo } from 'react';
-import { FlaskConical, Play, RotateCcw, AlertTriangle } from 'lucide-react';
+import { Play, RotateCcw, AlertTriangle, Atom, Activity, Beaker } from 'lucide-react';
 import { PeriodicTable } from './PeriodicTable';
 import { VisualizationCanvas } from './VisualizationCanvas';
 import { ParameterControls } from './ParameterControls';
 import { RecipesBook } from './RecipesBook';
-import { Element, supabase } from '../lib/supabase';
+import { MoleculeLibrary } from './MoleculeLibrary';
+import { SpectroscopyViewer } from './SpectroscopyViewer';
+import { pHSimulator } from './pHSimulator';
+import { Element, Molecule, supabase } from '../lib/supabase';
 import { chemistryEngine, MixtureState } from '../lib/chemistryEngine';
 import { VisualizationEngine } from '../lib/visualizationEngine';
 
@@ -13,6 +16,8 @@ interface SelectedComponent {
   mass: number;
   moles: number;
 }
+
+type AdvancedTab = 'molecules' | 'spectroscopy' | 'ph';
 
 export function Laboratory() {
   const [selectedComponents, setSelectedComponents] = useState<SelectedComponent[]>([]);
@@ -23,8 +28,28 @@ export function Laboratory() {
   const [results, setResults] = useState<any>(null);
   const [hazards, setHazards] = useState<string[]>([]);
   const [isSimulating, setIsSimulating] = useState(false);
+  const [advancedTab, setAdvancedTab] = useState<AdvancedTab>('molecules');
+  const [selectedMolecule, setSelectedMolecule] = useState<Molecule | null>(null);
+  const [molecules, setMolecules] = useState<Molecule[]>([]);
 
   const visualizationEngine = useMemo(() => new VisualizationEngine(), []);
+
+  useEffect(() => {
+    loadMolecules();
+  }, []);
+
+  const loadMolecules = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('molecules')
+        .select('*');
+
+      if (error) throw error;
+      if (data) setMolecules(data as Molecule[]);
+    } catch (error) {
+      console.error('Error loading molecules:', error);
+    }
+  };
 
   useEffect(() => {
     if (selectedComponents.length > 0) {
@@ -181,20 +206,7 @@ export function Laboratory() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 text-white">
-      <header className="border-b border-gray-800 bg-gray-900/50 backdrop-blur">
-        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <FlaskConical className="w-8 h-8 text-blue-400" />
-            <div>
-              <h1 className="text-2xl font-bold">Quantum Chemistry Laboratory</h1>
-              <p className="text-sm text-gray-400">Research-Grade Molecular Simulator</p>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <main className="container mx-auto px-6 py-6">
+    <main className="container mx-auto px-6 py-6">
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           <div className="xl:col-span-2 space-y-6">
             <div className="bg-gray-900/50 backdrop-blur rounded-lg p-6 border border-gray-700">
@@ -375,7 +387,66 @@ export function Laboratory() {
             )}
           </div>
         </div>
+
+        <div className="mt-6 bg-gray-900/30 backdrop-blur rounded-lg border border-gray-700 overflow-hidden">
+          <div className="border-b border-gray-700 bg-gray-900/50">
+            <div className="flex gap-2 p-4">
+              <button
+                onClick={() => setAdvancedTab('molecules')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                  advancedTab === 'molecules'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                }`}
+              >
+                <Atom className="w-4 h-4" />
+                Molecule Library
+              </button>
+              <button
+                onClick={() => setAdvancedTab('spectroscopy')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                  advancedTab === 'spectroscopy'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                }`}
+              >
+                <Activity className="w-4 h-4" />
+                Spectroscopy
+              </button>
+              <button
+                onClick={() => setAdvancedTab('ph')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                  advancedTab === 'ph'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                }`}
+              >
+                <Beaker className="w-4 h-4" />
+                pH Simulator
+              </button>
+            </div>
+          </div>
+
+          <div className="p-6">
+            {advancedTab === 'molecules' && (
+              <MoleculeLibrary
+                onSelectMolecule={setSelectedMolecule}
+                selectedMoleculeId={selectedMolecule?.id}
+              />
+            )}
+
+            {advancedTab === 'spectroscopy' && (
+              <SpectroscopyViewer
+                molecule={selectedMolecule}
+                elements={selectedComponents.map(c => c.element)}
+              />
+            )}
+
+            {advancedTab === 'ph' && (
+              <pHSimulator molecules={molecules} />
+            )}
+          </div>
+        </div>
       </main>
-    </div>
   );
 }

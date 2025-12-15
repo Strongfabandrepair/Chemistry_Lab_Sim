@@ -98,3 +98,90 @@ export interface MixtureComponent {
   added_at: string;
   sequence: number;
 }
+
+export interface Molecule {
+  id: string;
+  name: string;
+  iupac_name: string | null;
+  formula: string;
+  smiles: string | null;
+  molecular_weight: number;
+  structure_type: 'organic' | 'inorganic' | 'coordination';
+  geometry: string | null;
+  bond_angles: any[];
+  functional_groups: string[];
+  properties: {
+    boiling_point?: number;
+    melting_point?: number;
+    polarity?: string;
+    soluble_in_water?: boolean;
+    pka?: number;
+    [key: string]: any;
+  };
+  safety_info: {
+    hazards?: string[];
+    toxicity?: string;
+    [key: string]: any;
+  };
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MolecularOrbital {
+  id: string;
+  molecule_id: string;
+  orbital_type: 'bonding' | 'antibonding' | 'nonbonding';
+  energy_level: number;
+  orbital_name: string;
+  electron_count: number;
+  visualization_data: any;
+}
+
+export interface SpectroscopyData {
+  id: string;
+  molecule_id: string;
+  spectrum_type: 'uv_vis' | 'ir' | 'nmr' | 'mass_spec';
+  peaks: Array<{
+    wavelength?: number;
+    wavenumber?: number;
+    chemical_shift?: number;
+    intensity: number | string;
+    assignment?: string;
+    [key: string]: any;
+  }>;
+  conditions: {
+    solvent?: string;
+    temperature?: number;
+    [key: string]: any;
+  };
+}
+
+export interface Tutorial {
+  id: string;
+  title: string;
+  description: string | null;
+  difficulty_level: 'beginner' | 'intermediate' | 'advanced';
+  category: string;
+  steps: Array<{
+    step: number;
+    title: string;
+    content: string;
+    action: string;
+    [key: string]: any;
+  }>;
+  objectives: string[];
+  prerequisites: string[];
+  estimated_time: number;
+  order_index: number;
+}
+
+export interface UserProgress {
+  id: string;
+  user_id: string;
+  tutorial_id: string;
+  completed_steps: number[];
+  completed: boolean;
+  score: number | null;
+  started_at: string;
+  completed_at: string | null;
+}
