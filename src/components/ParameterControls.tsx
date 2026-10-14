@@ -1,211 +1,242 @@
-import { useState } from 'react';
-import { Flame, Wind, Gauge, Beaker } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Thermometer, Gauge, Beaker, Wind, SlidersHorizontal, RotateCcw } from 'lucide-react';
 import {
   temperatureUnits,
   pressureUnits,
   volumeUnits,
-  TemperatureUnit,
-  PressureUnit,
-  VolumeUnit
+  type TemperatureUnit,
+  type PressureUnit,
+  type VolumeUnit,
 } from '../lib/unitConversions';
 
+export function NumberField({
+  value,
+  onChange,
+  min,
+  max,
+  step = 'any',
+  label,
+}: {
+  value: number;
+  onChange: (value: number) => void;
+  min: number;
+  max: number;
+  step?: number | 'any';
+  label: string;
+}) {
+  const [draft, setDraft] = useState(String(Number(value.toFixed(5))));
+  const [invalid, setInvalid] = useState(false);
+  const cancelled = useRef(false);
+  useEffect(() => {
+    setDraft(String(Number(value.toFixed(5))));
+    setInvalid(false);
+  }, [value]);
+  const commit = () => {
+    if (cancelled.current) {
+      cancelled.current = false;
+      return;
+    }
+    const parsed = Number(draft);
+    if (!draft.trim() || !Number.isFinite(parsed) || parsed < min || parsed > max) {
+      setDraft(String(Number(value.toFixed(5))));
+      setInvalid(false);
+      return;
+    }
+    onChange(parsed);
+    setInvalid(false);
+  };
+  return (
+    <input
+      type="number"
+      aria-label={label}
+      aria-invalid={invalid}
+      min={min}
+      max={max}
+      step={step}
+      value={draft}
+      onChange={(e) => {
+        setDraft(e.target.value);
+        const n = Number(e.target.value);
+        setInvalid(!e.target.value || !Number.isFinite(n) || n < min || n > max);
+      }}
+      onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') e.currentTarget.blur();
+        if (e.key === 'Escape') {
+          cancelled.current = true;
+          setDraft(String(value));
+          setInvalid(false);
+          e.currentTarget.blur();
+        }
+      }}
+    />
+  );
+}
 interface ParameterControlsProps {
   temperature: number;
   pressure: number;
   volume: number;
   atmosphere: string;
-  onTemperatureChange: (temp: number) => void;
-  onPressureChange: (pressure: number) => void;
-  onVolumeChange: (volume: number) => void;
-  onAtmosphereChange: (atmosphere: string) => void;
+  onTemperatureChange: (value: number) => void;
+  onPressureChange: (value: number) => void;
+  onVolumeChange: (value: number) => void;
+  onAtmosphereChange: (value: string) => void;
 }
-
-export function ParameterControls({
-  temperature,
-  pressure,
-  volume,
-  atmosphere,
-  onTemperatureChange,
-  onPressureChange,
-  onVolumeChange,
-  onAtmosphereChange
-}: ParameterControlsProps) {
+export function ParameterControls(props: ParameterControlsProps) {
   const [tempUnit, setTempUnit] = useState<TemperatureUnit>('K');
   const [pressureUnit, setPressureUnit] = useState<PressureUnit>('atm');
   const [volumeUnit, setVolumeUnit] = useState<VolumeUnit>('L');
-
-  const atmosphereOptions = ['air', 'nitrogen', 'oxygen', 'argon', 'vacuum', 'CO2'];
-
-  const displayTemp = temperatureUnits[tempUnit].fromKelvin(temperature);
-  const displayPressure = pressureUnits[pressureUnit].fromAtm(pressure);
-  const displayVolume = volumeUnits[volumeUnit].fromL(volume);
-
-  const handleTempChange = (value: number) => {
-    const kelvin = temperatureUnits[tempUnit].toKelvin(value);
-    onTemperatureChange(kelvin);
-  };
-
-  const handlePressureChange = (value: number) => {
-    const atm = pressureUnits[pressureUnit].toAtm(value);
-    onPressureChange(atm);
-  };
-
-  const handleVolumeChange = (value: number) => {
-    const liters = volumeUnits[volumeUnit].toL(value);
-    onVolumeChange(liters);
-  };
-
+  const temp = temperatureUnits[tempUnit];
+  const pressure = pressureUnits[pressureUnit];
+  const volume = volumeUnits[volumeUnit];
   return (
-    <div className="bg-gray-900/50 backdrop-blur rounded-lg p-6 space-y-6 border border-gray-700">
-      <h3 className="text-xl font-bold text-white mb-4">Environmental Parameters</h3>
-
-      <div className="space-y-4">
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-300">
-              <Flame className="w-4 h-4 text-orange-400" />
-              Temperature
-            </label>
-            <div className="flex items-center gap-2">
-              <span className="text-white font-mono">{displayTemp.toFixed(1)}</span>
-              <select
-                value={tempUnit}
-                onChange={(e) => setTempUnit(e.target.value as TemperatureUnit)}
-                className="bg-gray-800 border border-gray-600 rounded px-2 py-0.5 text-white text-xs"
-              >
-                {Object.entries(temperatureUnits).map(([key]) => (
-                  <option key={key} value={key}>{key}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-          <input
-            type="number"
-            step="0.1"
-            value={displayTemp.toFixed(1)}
-            onChange={(e) => handleTempChange(parseFloat(e.target.value))}
-            className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white mb-2"
+    <section className="conditions-section">
+      <div className="section-heading">
+        <h3>
+          <SlidersHorizontal size={15} /> Environment
+        </h3>
+        <button
+          className="icon-button"
+          aria-label="Reset environment"
+          onClick={() => {
+            props.onTemperatureChange(298.15);
+            props.onPressureChange(1);
+            props.onVolumeChange(1);
+            props.onAtmosphereChange('air');
+          }}
+        >
+          <RotateCcw size={13} />
+        </button>
+      </div>
+      <div className="parameter">
+        <label htmlFor="temperature-range">
+          <Thermometer size={14} />
+          Temperature
+        </label>
+        <div className="parameter-value">
+          <NumberField
+            label="Temperature"
+            min={temp.fromKelvin(1)}
+            max={temp.fromKelvin(5000)}
+            value={temp.fromKelvin(props.temperature)}
+            onChange={(v) => props.onTemperatureChange(temp.toKelvin(v))}
           />
-          <input
-            type="range"
-            min={temperatureUnits[tempUnit].fromKelvin(0)}
-            max={temperatureUnits[tempUnit].fromKelvin(5000)}
-            step="0.1"
-            value={displayTemp}
-            onChange={(e) => handleTempChange(parseFloat(e.target.value))}
-            className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-orange-500"
-          />
-          <div className="flex justify-between text-xs text-gray-500 mt-1">
-            <span>{temperatureUnits[tempUnit].fromKelvin(0).toFixed(0)} {tempUnit}</span>
-            <span>5000 K</span>
-          </div>
-        </div>
-
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-300">
-              <Gauge className="w-4 h-4 text-blue-400" />
-              Pressure
-            </label>
-            <div className="flex items-center gap-2">
-              <span className="text-white font-mono">{displayPressure.toFixed(2)}</span>
-              <select
-                value={pressureUnit}
-                onChange={(e) => setPressureUnit(e.target.value as PressureUnit)}
-                className="bg-gray-800 border border-gray-600 rounded px-2 py-0.5 text-white text-xs"
-              >
-                {Object.entries(pressureUnits).map(([key]) => (
-                  <option key={key} value={key}>{key}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-          <input
-            type="number"
-            step="0.01"
-            value={displayPressure.toFixed(2)}
-            onChange={(e) => handlePressureChange(parseFloat(e.target.value))}
-            className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white mb-2"
-          />
-          <input
-            type="range"
-            min={pressureUnits[pressureUnit].fromAtm(0.001)}
-            max={pressureUnits[pressureUnit].fromAtm(100)}
-            step="0.01"
-            value={displayPressure}
-            onChange={(e) => handlePressureChange(parseFloat(e.target.value))}
-            className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
-          />
-        </div>
-
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-300">
-              <Beaker className="w-4 h-4 text-green-400" />
-              Volume
-            </label>
-            <div className="flex items-center gap-2">
-              <span className="text-white font-mono">{displayVolume.toFixed(2)}</span>
-              <select
-                value={volumeUnit}
-                onChange={(e) => setVolumeUnit(e.target.value as VolumeUnit)}
-                className="bg-gray-800 border border-gray-600 rounded px-2 py-0.5 text-white text-xs"
-              >
-                {Object.entries(volumeUnits).map(([key]) => (
-                  <option key={key} value={key}>{key}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-          <input
-            type="number"
-            step="0.01"
-            value={displayVolume.toFixed(2)}
-            onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
-            className="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white mb-2"
-          />
-          <input
-            type="range"
-            min={volumeUnits[volumeUnit].fromL(0.1)}
-            max={volumeUnits[volumeUnit].fromL(100)}
-            step="0.01"
-            value={displayVolume}
-            onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
-            className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-green-500"
-          />
-        </div>
-
-        <div>
-          <label className="flex items-center gap-2 text-sm font-medium text-gray-300 mb-2">
-            <Wind className="w-4 h-4 text-purple-400" />
-            Atmosphere
-          </label>
           <select
-            value={atmosphere}
-            onChange={(e) => onAtmosphereChange(e.target.value)}
-            className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+            aria-label="Temperature unit"
+            value={tempUnit}
+            onChange={(e) => setTempUnit(e.target.value as TemperatureUnit)}
           >
-            {atmosphereOptions.map((option) => (
-              <option key={option} value={option}>
-                {option.charAt(0).toUpperCase() + option.slice(1)}
-              </option>
+            {Object.keys(temperatureUnits).map((key) => (
+              <option key={key}>{key}</option>
             ))}
           </select>
         </div>
-      </div>
-
-      <div className="pt-4 border-t border-gray-700">
-        <div className="text-xs text-gray-400 space-y-1">
-          <div className="flex justify-between">
-            <span>Standard Temperature:</span>
-            <span className="text-white">298.15 K (25°C)</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Standard Pressure:</span>
-            <span className="text-white">1.000 atm (101.325 kPa)</span>
-          </div>
+        <input
+          id="temperature-range"
+          type="range"
+          min="1"
+          max="5000"
+          step="0.01"
+          value={props.temperature}
+          onChange={(e) => props.onTemperatureChange(Number(e.target.value))}
+        />
+        <div className="range-labels">
+          <span>1 K</span>
+          <span>5,000 K</span>
         </div>
       </div>
-    </div>
+      <div className="parameter">
+        <label htmlFor="pressure-range">
+          <Gauge size={14} />
+          Pressure
+        </label>
+        <div className="parameter-value">
+          <NumberField
+            label="Pressure"
+            min={pressure.fromAtm(0.001)}
+            max={pressure.fromAtm(500)}
+            value={pressure.fromAtm(props.pressure)}
+            onChange={(v) => props.onPressureChange(pressure.toAtm(v))}
+          />
+          <select
+            aria-label="Pressure unit"
+            value={pressureUnit}
+            onChange={(e) => setPressureUnit(e.target.value as PressureUnit)}
+          >
+            {Object.keys(pressureUnits).map((key) => (
+              <option key={key}>{key}</option>
+            ))}
+          </select>
+        </div>
+        <input
+          id="pressure-range"
+          type="range"
+          min="0.001"
+          max="500"
+          step="0.001"
+          value={props.pressure}
+          onChange={(e) => props.onPressureChange(Number(e.target.value))}
+        />
+        <div className="range-labels">
+          <span>0.001 atm</span>
+          <span>500 atm</span>
+        </div>
+      </div>
+      <div className="parameter">
+        <label htmlFor="volume-range">
+          <Beaker size={14} />
+          Volume
+        </label>
+        <div className="parameter-value">
+          <NumberField
+            label="Volume"
+            min={volume.fromL(0.01)}
+            max={volume.fromL(100)}
+            value={volume.fromL(props.volume)}
+            onChange={(v) => props.onVolumeChange(volume.toL(v))}
+          />
+          <select
+            aria-label="Volume unit"
+            value={volumeUnit}
+            onChange={(e) => setVolumeUnit(e.target.value as VolumeUnit)}
+          >
+            {Object.keys(volumeUnits).map((key) => (
+              <option key={key}>{key}</option>
+            ))}
+          </select>
+        </div>
+        <input
+          id="volume-range"
+          type="range"
+          min="0.01"
+          max="100"
+          step="0.01"
+          value={props.volume}
+          onChange={(e) => props.onVolumeChange(Number(e.target.value))}
+        />
+        <div className="range-labels">
+          <span>0.01 L</span>
+          <span>100 L</span>
+        </div>
+      </div>
+      <div className="atmosphere-field">
+        <label htmlFor="atmosphere">
+          <Wind size={14} />
+          Atmosphere
+        </label>
+        <select
+          id="atmosphere"
+          value={props.atmosphere}
+          onChange={(e) => props.onAtmosphereChange(e.target.value)}
+        >
+          {['air', 'nitrogen', 'oxygen', 'argon', 'vacuum', 'CO2'].map((a) => (
+            <option key={a} value={a}>
+              {a === 'air' ? 'Ambient air' : a.charAt(0).toUpperCase() + a.slice(1)}
+            </option>
+          ))}
+        </select>
+        <small>Metadata only · atmospheric reactions not modeled</small>
+      </div>
+    </section>
   );
 }

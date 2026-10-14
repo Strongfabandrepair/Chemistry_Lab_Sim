@@ -1,549 +1,288 @@
-import { Element, Compound } from './supabase';
+import type { Element, Compound } from './supabase';
 
-const R = 8.314;
-
+const R = 8.314462618; // J mol−1 K−1
+const R_ATM = 0.082057366; // L atm mol−1 K−1
 export interface MixtureState {
-  components: Array<{
-    element?: Element;
-    compound?: Compound;
-    mass: number;
-    moles: number;
-  }>;
+  /** Amounts are moles of atoms for elemental inputs, not moles of H2 / O2. */
+  components: Array<{ element?: Element; compound?: Compound; mass: number; moles: number }>;
   temperature: number;
   pressure: number;
   volume: number;
   atmosphere: string;
 }
-
-export interface ReactionResult {
-  products: Array<{ formula: string; mass: number; moles: number; color: string; description?: string }>;
-  energy_change: number;
-  temperature_change: number;
-  phase_transitions: Array<{ substance: string; from: string; to: string }>;
-  hazards: string[];
-  visual_effects: VisualEffect[];
-}
-
 export interface VisualEffect {
   type: 'color_change' | 'gas_evolution' | 'precipitate' | 'heat' | 'light' | 'explosion';
   intensity: number;
   color?: string;
   duration: number;
 }
-
+export interface ReactionProduct {
+  formula: string;
+  mass: number;
+  moles: number;
+  color: string;
+  description?: string;
+}
+export interface ReactionResult {
+  status: 'reacted' | 'conditions-not-met' | 'unsupported' | 'no-reaction';
+  message: string;
+  equation?: string;
+  products: ReactionProduct[];
+  remaining: ReactionProduct[];
+  /** Total kJ for the modeled extent, using standard formation enthalpies. */
+  energy_change: number;
+  /** Isothermal model: the temperature setpoint is held constant. */
+  temperature_change: number;
+  phase_transitions: Array<{ substance: string; from: string; to: string }>;
+  hazards: string[];
+  visual_effects: VisualEffect[];
+}
 export interface BondingInfo {
   bond_type: 'ionic' | 'covalent' | 'metallic' | 'none';
   bond_strength: number;
   polarity: number;
 }
+interface ReactionModel {
+  atoms: [string, number, string, number];
+  formula: string;
+  name: string;
+  equation: string;
+  minTemperature: number;
+  enthalpy: number;
+  color: string;
+}
+/** Limited, idealized complete-conversion models, not kinetics or equilibrium predictions.
+ * ΔfH° values in kJ/mol (298 K): common tabulated reference values.
+ * Thresholds are educational activation gates, not experimentally predicted ignition points.
+ */
+export const reactionModels: ReactionModel[] = [
+  {
+    atoms: ['H', 2, 'O', 1],
+    formula: 'H2O',
+    name: 'Water vapor',
+    equation: '2 H₂ + O₂ → 2 H₂O',
+    minTemperature: 773.15,
+    enthalpy: -241.826,
+    color: '#98c8e8',
+  },
+  {
+    atoms: ['Na', 1, 'Cl', 1],
+    formula: 'NaCl',
+    name: 'Sodium chloride',
+    equation: '2 Na + Cl₂ → 2 NaCl',
+    minTemperature: 298.15,
+    enthalpy: -411.12,
+    color: '#e4edf0',
+  },
+  {
+    atoms: ['C', 1, 'O', 2],
+    formula: 'CO2',
+    name: 'Carbon dioxide',
+    equation: 'C + O₂ → CO₂',
+    minTemperature: 873.15,
+    enthalpy: -393.51,
+    color: '#a3bbc8',
+  },
+  {
+    atoms: ['Mg', 1, 'O', 1],
+    formula: 'MgO',
+    name: 'Magnesium oxide',
+    equation: '2 Mg + O₂ → 2 MgO',
+    minTemperature: 923.15,
+    enthalpy: -601.6,
+    color: '#e7e8ee',
+  },
+  {
+    atoms: ['Fe', 2, 'O', 3],
+    formula: 'Fe2O3',
+    name: 'Iron(III) oxide',
+    equation: '4 Fe + 3 O₂ → 2 Fe₂O₃',
+    minTemperature: 573.15,
+    enthalpy: -824.2,
+    color: '#b86449',
+  },
+  {
+    atoms: ['Cu', 1, 'O', 1],
+    formula: 'CuO',
+    name: 'Copper(II) oxide',
+    equation: '2 Cu + O₂ → 2 CuO',
+    minTemperature: 573.15,
+    enthalpy: -155.2,
+    color: '#49494f',
+  },
+  {
+    atoms: ['Al', 2, 'O', 3],
+    formula: 'Al2O3',
+    name: 'Aluminum oxide',
+    equation: '4 Al + 3 O₂ → 2 Al₂O₃',
+    minTemperature: 1200,
+    enthalpy: -1675.7,
+    color: '#d9e1e5',
+  },
+];
 
-export class ChemistryEngine {
-  private compoundNames: Record<string, string> = {
-    'H2O': 'Water',
-    'NaCl': 'Sodium Chloride (Table Salt)',
-    'Fe2O3': 'Iron(III) Oxide (Rust)',
-    'NH3': 'Ammonia',
-    'CO2': 'Carbon Dioxide',
-    'CuO': 'Copper(II) Oxide',
-    'Al2O3': 'Aluminum Oxide',
-    'MgO': 'Magnesium Oxide',
-    'SO2': 'Sulfur Dioxide',
-    'SO3': 'Sulfur Trioxide',
-    'H2SO4': 'Sulfuric Acid',
-    'HCl': 'Hydrochloric Acid',
-    'NaOH': 'Sodium Hydroxide',
-    'KCl': 'Potassium Chloride',
-    'CaCO3': 'Calcium Carbonate',
-    'Ca(OH)2': 'Calcium Hydroxide',
-    'FeO': 'Iron(II) Oxide',
-    'Fe3O4': 'Iron(II,III) Oxide (Magnetite)',
-    'CuO2': 'Copper(II) Peroxide',
-    'Cu2O': 'Copper(I) Oxide',
-    'ZnO': 'Zinc Oxide',
-    'AgCl': 'Silver Chloride',
-    'PbO': 'Lead(II) Oxide',
-    'TiO2': 'Titanium Dioxide',
-    'SiO2': 'Silicon Dioxide (Quartz)',
-    'CaO': 'Calcium Oxide (Quicklime)',
-    'K2O': 'Potassium Oxide',
-    'Na2O': 'Sodium Oxide',
-    'Li2O': 'Lithium Oxide',
-    'BaO': 'Barium Oxide',
-    'SrO': 'Strontium Oxide',
-    'MnO2': 'Manganese Dioxide',
-    'Cr2O3': 'Chromium(III) Oxide',
-    'NiO': 'Nickel(II) Oxide',
-    'CoO': 'Cobalt(II) Oxide',
-    'SnO2': 'Tin(IV) Oxide',
-    'PbO2': 'Lead(IV) Oxide',
-    'HgO': 'Mercury(II) Oxide',
-    'Ag2O': 'Silver Oxide',
-    'CdO': 'Cadmium Oxide',
-    'NO': 'Nitric Oxide',
-    'NO2': 'Nitrogen Dioxide',
-    'N2O': 'Nitrous Oxide (Laughing Gas)',
-    'N2O5': 'Dinitrogen Pentoxide',
-    'P4O10': 'Phosphorus Pentoxide',
-    'P2O5': 'Phosphorus Pentoxide',
-    'Cl2O': 'Dichlorine Monoxide',
-    'ClO2': 'Chlorine Dioxide',
-    'Br2O': 'Dibromine Monoxide',
-    'I2O5': 'Diiodine Pentoxide',
-    'H2S': 'Hydrogen Sulfide',
-    'H3PO4': 'Phosphoric Acid',
-    'HNO3': 'Nitric Acid',
-    'CH4': 'Methane',
-    'C2H6': 'Ethane',
-    'C3H8': 'Propane',
-    'C6H12O6': 'Glucose',
-    'NH4Cl': 'Ammonium Chloride',
-    'NH4NO3': 'Ammonium Nitrate',
-    'KNO3': 'Potassium Nitrate',
-    'NaNO3': 'Sodium Nitrate',
-    'BaCl2': 'Barium Chloride',
-    'CaCl2': 'Calcium Chloride',
-    'MgCl2': 'Magnesium Chloride',
-    'FeCl2': 'Iron(II) Chloride',
-    'FeCl3': 'Iron(III) Chloride',
-    'CuCl2': 'Copper(II) Chloride',
-    'ZnCl2': 'Zinc Chloride',
-    'AlCl3': 'Aluminum Chloride',
-    'LiCl': 'Lithium Chloride',
-    'RbCl': 'Rubidium Chloride',
-    'CsCl': 'Cesium Chloride',
-    'NaBr': 'Sodium Bromide',
-    'KBr': 'Potassium Bromide',
-    'NaI': 'Sodium Iodide',
-    'KI': 'Potassium Iodide',
-    'NaF': 'Sodium Fluoride',
-    'CaF2': 'Calcium Fluoride',
-    'FeS': 'Iron(II) Sulfide',
-    'FeS2': 'Iron Disulfide (Pyrite)',
-    'ZnS': 'Zinc Sulfide',
-    'PbS': 'Lead(II) Sulfide',
-    'CuS': 'Copper(II) Sulfide',
-    'Ag2S': 'Silver Sulfide',
-    'HgS': 'Mercury(II) Sulfide',
-    'CdS': 'Cadmium Sulfide',
-    'Na2S': 'Sodium Sulfide',
-    'K2S': 'Potassium Sulfide',
-    'CaS': 'Calcium Sulfide',
-    'BaS': 'Barium Sulfide'
-  };
-
-  predictBonding(element1: Element, element2: Element): BondingInfo {
-    const enDiff = Math.abs(
-      (element1.electronegativity || 0) - (element2.electronegativity || 0)
-    );
-
-    if (enDiff > 1.7) {
-      return {
-        bond_type: 'ionic',
-        bond_strength: enDiff * 400,
-        polarity: 1.0
-      };
-    } else if (enDiff > 0.4) {
-      return {
-        bond_type: 'covalent',
-        bond_strength: 350 - enDiff * 50,
-        polarity: enDiff / 1.7
-      };
-    } else if (element1.group_block === 'd' && element2.group_block === 'd') {
-      return {
-        bond_type: 'metallic',
-        bond_strength: 200,
-        polarity: 0
-      };
-    }
-
-    return {
-      bond_type: 'covalent',
-      bond_strength: 300,
-      polarity: 0
-    };
+export function validateMixture(mixture: MixtureState): void {
+  for (const [name, value] of Object.entries({
+    temperature: mixture.temperature,
+    pressure: mixture.pressure,
+    volume: mixture.volume,
+  })) {
+    if (!Number.isFinite(value) || value <= 0)
+      throw new Error(`${name} must be a finite number greater than zero.`);
   }
-
-  predictReaction(mixture: MixtureState): ReactionResult {
-    const components = mixture.components;
-    const hazards: string[] = [];
-    const visual_effects: VisualEffect[] = [];
-    const products: Array<{ formula: string; mass: number; moles: number; color: string; description?: string }> = [];
-
-    const elements = components
-      .filter(c => c.element)
-      .map(c => c.element!);
-
-    if (elements.length < 2) {
-      return {
-        products: components.map(c => {
-          const formula = c.element?.symbol || c.compound?.formula || 'Unknown';
-          return {
-            formula,
-            mass: c.mass,
-            moles: c.moles,
-            color: c.element?.color || c.compound?.color || 'clear',
-            description: c.element?.name || c.compound?.name || this.compoundNames[formula]
-          };
-        }),
-        energy_change: 0,
-        temperature_change: 0,
-        phase_transitions: this.checkPhaseTransitions(mixture),
-        hazards,
-        visual_effects
-      };
+  for (const c of mixture.components) {
+    if (!Number.isFinite(c.mass) || !Number.isFinite(c.moles) || c.mass <= 0 || c.moles <= 0) {
+      throw new Error('Component mass and amount must be finite and greater than zero.');
     }
-
-    for (let i = 0; i < elements.length; i++) {
-      for (let j = i + 1; j < elements.length; j++) {
-        const el1 = elements[i];
-        const el2 = elements[j];
-        const bonding = this.predictBonding(el1, el2);
-
-        if (this.shouldReact(el1, el2, mixture.temperature, bonding)) {
-          const reaction = this.simulateReaction(
-            el1,
-            el2,
-            components[i].moles,
-            components[j].moles,
-            mixture.temperature,
-            mixture.pressure,
-            bonding
-          );
-
-          products.push(...reaction.products);
-          hazards.push(...reaction.hazards);
-          visual_effects.push(...reaction.visual_effects);
-        }
-      }
+    const molarMass = c.element?.atomic_mass ?? c.compound?.molecular_mass;
+    if (!molarMass || Math.abs(c.mass - c.moles * molarMass) > Math.max(1e-6, c.mass * 1e-5)) {
+      throw new Error('Component mass and amount are inconsistent.');
     }
-
-    if (products.length === 0) {
-      return {
-        products: components.map(c => {
-          const formula = c.element?.symbol || c.compound?.formula || 'Unknown';
-          return {
-            formula,
-            mass: c.mass,
-            moles: c.moles,
-            color: c.element?.color || c.compound?.color || 'clear',
-            description: c.element?.name || c.compound?.name || this.compoundNames[formula]
-          };
-        }),
-        energy_change: 0,
-        temperature_change: 0,
-        phase_transitions: this.checkPhaseTransitions(mixture),
-        hazards,
-        visual_effects
-      };
-    }
-
-    const total_energy = this.calculateEnergyChange(components, products, mixture.temperature);
-    const temp_change = this.calculateTemperatureChange(total_energy, mixture);
-
-    return {
-      products,
-      energy_change: total_energy,
-      temperature_change: temp_change,
-      phase_transitions: this.checkPhaseTransitions({
-        ...mixture,
-        temperature: mixture.temperature + temp_change
-      }),
-      hazards,
-      visual_effects
-    };
-  }
-
-  private shouldReact(
-    el1: Element,
-    el2: Element,
-    temperature: number,
-    bonding: BondingInfo
-  ): boolean {
-    if (!el1.electronegativity || !el2.electronegativity) return false;
-
-    const enDiff = Math.abs(el1.electronegativity - el2.electronegativity);
-    const activationEnergy = 50 / (enDiff + 0.1);
-    const thermalEnergy = R * temperature / 1000;
-
-    const reactionProbability = Math.exp(-activationEnergy / (R * temperature / 1000));
-
-    if (el1.symbol === 'O' || el2.symbol === 'O') return temperature > 400 || Math.random() < 0.7;
-    if (el1.symbol === 'F' || el2.symbol === 'F') return true;
-    if (el1.symbol === 'Cl' || el2.symbol === 'Cl') return temperature > 300 || Math.random() < 0.5;
-
-    if (el1.group_number === 1 || el2.group_number === 1) return true;
-    if (el1.group_number === 2 || el2.group_number === 2) return temperature > 500 || Math.random() < 0.6;
-
-    return thermalEnergy > activationEnergy || Math.random() < reactionProbability;
-  }
-
-  private simulateReaction(
-    el1: Element,
-    el2: Element,
-    moles1: number,
-    moles2: number,
-    temperature: number,
-    pressure: number,
-    bonding: BondingInfo
-  ): {
-    products: Array<{ formula: string; mass: number; moles: number; color: string; description?: string }>;
-    hazards: string[];
-    visual_effects: VisualEffect[];
-  } {
-    const products: Array<{ formula: string; mass: number; moles: number; color: string; description?: string }> = [];
-    const hazards: string[] = [];
-    const visual_effects: VisualEffect[] = [];
-
-    const oxidationState1 = this.getStableOxidationState(el1);
-    const oxidationState2 = this.getStableOxidationState(el2);
-
-    if (oxidationState1 === null || oxidationState2 === null) {
-      return { products, hazards, visual_effects };
-    }
-
-    const ratio1 = Math.abs(oxidationState2);
-    const ratio2 = Math.abs(oxidationState1);
-    const gcd = this.gcd(ratio1, ratio2);
-    const simplifiedRatio1 = ratio1 / gcd;
-    const simplifiedRatio2 = ratio2 / gcd;
-
-    const limitingMoles = Math.min(
-      moles1 / simplifiedRatio1,
-      moles2 / simplifiedRatio2
-    );
-
-    const productMoles = limitingMoles;
-    const formula = this.generateFormula(el1.symbol, simplifiedRatio1, el2.symbol, simplifiedRatio2);
-    const productMass = productMoles * (
-      el1.atomic_mass * simplifiedRatio1 +
-      el2.atomic_mass * simplifiedRatio2
-    );
-
-    const productColor = this.predictProductColor(el1, el2, bonding);
-    const description = this.compoundNames[formula];
-
-    products.push({
-      formula,
-      mass: productMass,
-      moles: productMoles,
-      color: productColor,
-      description
-    });
-
-    if (el1.symbol === 'Na' && el2.symbol === 'Cl') {
-      visual_effects.push({
-        type: 'light',
-        intensity: 1.2,
-        color: 'yellow-orange',
-        duration: 3000
-      });
-      visual_effects.push({
-        type: 'heat',
-        intensity: 1.0,
-        duration: 4000
-      });
-    }
-
-    if ((el1.symbol === 'H' && el2.symbol === 'O') || (el1.symbol === 'O' && el2.symbol === 'H')) {
-      if (moles1 > 0.1 && moles2 > 0.1 && temperature > 500) {
-        hazards.push('EXPLOSION RISK: Hydrogen and oxygen mixture above ignition temperature');
-        visual_effects.push({
-          type: 'explosion',
-          intensity: 1.5,
-          color: 'white-blue',
-          duration: 1000
-        });
-      }
-    }
-
-    if (el1.group_number === 1 || el2.group_number === 1) {
-      hazards.push('REACTIVE METAL: May react violently with water or air');
-      visual_effects.push({
-        type: 'heat',
-        intensity: 1.3,
-        duration: 5000
-      });
-    }
-
-    if (bonding.bond_type === 'ionic' && bonding.bond_strength > 600) {
-      visual_effects.push({
-        type: 'light',
-        intensity: 1.0,
-        color: 'white',
-        duration: 2500
-      });
-    }
-
-    if (temperature > 1500 && bonding.bond_type === 'metallic') {
-      visual_effects.push({
-        type: 'light',
-        intensity: 0.9,
-        color: 'red-orange',
-        duration: 10000
-      });
-    }
-
-    return { products, hazards, visual_effects };
-  }
-
-  private getStableOxidationState(element: Element): number | null {
-    if (!element.oxidation_states || element.oxidation_states.length === 0) {
-      return null;
-    }
-
-    const positiveStates = element.oxidation_states.filter(s => s > 0);
-    if (positiveStates.length > 0) {
-      return positiveStates[positiveStates.length - 1];
-    }
-
-    const negativeStates = element.oxidation_states.filter(s => s < 0);
-    if (negativeStates.length > 0) {
-      return negativeStates[0];
-    }
-
-    return element.oxidation_states[0];
-  }
-
-  private gcd(a: number, b: number): number {
-    return b === 0 ? a : this.gcd(b, a % b);
-  }
-
-  private generateFormula(
-    symbol1: string,
-    ratio1: number,
-    symbol2: string,
-    ratio2: number
-  ): string {
-    if (symbol1 < symbol2) {
-      return `${symbol1}${ratio1 > 1 ? ratio1 : ''}${symbol2}${ratio2 > 1 ? ratio2 : ''}`;
-    } else {
-      return `${symbol2}${ratio2 > 1 ? ratio2 : ''}${symbol1}${ratio1 > 1 ? ratio1 : ''}`;
-    }
-  }
-
-  private predictProductColor(el1: Element, el2: Element, bonding: BondingInfo): string {
-    if (el1.symbol === 'Na' && el2.symbol === 'Cl') return 'white';
-    if (el1.symbol === 'Cu' || el2.symbol === 'Cu') {
-      if (el2.symbol === 'O' || el1.symbol === 'O') return 'black-red';
-      return 'blue-green';
-    }
-    if (el1.symbol === 'Fe' || el2.symbol === 'Fe') {
-      if (el2.symbol === 'O' || el1.symbol === 'O') return 'rust-red';
-      return 'gray';
-    }
-    if (el1.symbol === 'Au' || el2.symbol === 'Au') return 'gold';
-    if (el1.symbol === 'Ag' || el2.symbol === 'Ag') return 'white-gray';
-
-    if (bonding.bond_type === 'ionic') return 'white';
-    if (bonding.bond_type === 'metallic') return 'metallic-gray';
-
-    return 'clear';
-  }
-
-  private calculateEnergyChange(
-    reactants: MixtureState['components'],
-    products: Array<{ formula: string; mass: number; moles: number }>,
-    temperature: number
-  ): number {
-    let totalEnergy = 0;
-
-    for (const reactant of reactants) {
-      if (reactant.element) {
-        totalEnergy -= reactant.element.ionization_energy * reactant.moles;
-      }
-    }
-
-    totalEnergy += products.length * 400 * temperature / 298.15;
-
-    return totalEnergy;
-  }
-
-  private calculateTemperatureChange(energyChange: number, mixture: MixtureState): number {
-    const totalMass = mixture.components.reduce((sum, c) => sum + c.mass, 0);
-
-    if (totalMass === 0) return 0;
-
-    const avgSpecificHeat = 0.5;
-
-    const tempChange = -energyChange / (totalMass * avgSpecificHeat);
-
-    return tempChange;
-  }
-
-  checkPhaseTransitions(mixture: MixtureState): Array<{ substance: string; from: string; to: string }> {
-    const transitions: Array<{ substance: string; from: string; to: string }> = [];
-
-    for (const component of mixture.components) {
-      if (component.element) {
-        const el = component.element;
-        const currentPhase = this.determinePhase(
-          mixture.temperature,
-          mixture.pressure,
-          el.melting_point,
-          el.boiling_point
-        );
-
-        if (currentPhase !== el.phase_at_stp) {
-          transitions.push({
-            substance: el.symbol,
-            from: el.phase_at_stp,
-            to: currentPhase
-          });
-        }
-      }
-    }
-
-    return transitions;
-  }
-
-  private determinePhase(
-    temperature: number,
-    pressure: number,
-    meltingPoint: number,
-    boilingPoint: number
-  ): 'solid' | 'liquid' | 'gas' {
-    const pressureFactor = pressure / 1.0;
-    const adjustedMelting = meltingPoint * Math.pow(pressureFactor, 0.1);
-    const adjustedBoiling = boilingPoint * Math.pow(pressureFactor, 0.15);
-
-    if (temperature < adjustedMelting) return 'solid';
-    if (temperature < adjustedBoiling) return 'liquid';
-    return 'gas';
-  }
-
-  calculateIdealGasProperties(mixture: MixtureState) {
-    const totalMoles = mixture.components.reduce((sum, c) => sum + c.moles, 0);
-
-    if (totalMoles === 0) return { pressure: 0, volume: 0, density: 0 };
-
-    const calculatedPressure = (totalMoles * R * mixture.temperature) / mixture.volume;
-
-    const totalMass = mixture.components.reduce((sum, c) => sum + c.mass, 0);
-    const density = totalMass / mixture.volume;
-
-    return {
-      pressure: calculatedPressure,
-      volume: mixture.volume,
-      density,
-      moles: totalMoles
-    };
-  }
-
-  calculateGibbsFreeEnergy(
-    enthalpy: number,
-    entropy: number,
-    temperature: number
-  ): number {
-    return enthalpy - temperature * entropy;
-  }
-
-  predictSpontaneity(gibbsEnergy: number): boolean {
-    return gibbsEnergy < 0;
-  }
-
-  calculateEquilibriumConstant(gibbsEnergy: number, temperature: number): number {
-    return Math.exp(-gibbsEnergy / (R * temperature));
   }
 }
 
+export class ChemistryEngine {
+  predictReaction(mixture: MixtureState): ReactionResult {
+    validateMixture(mixture);
+    const components = mixture.components;
+    const remaining = components.map((c) => ({
+      formula: c.element?.symbol ?? c.compound?.formula ?? '?',
+      mass: c.mass,
+      moles: c.moles,
+      color: c.element?.color ?? 'gray',
+      description: c.element?.name ?? c.compound?.name,
+    }));
+    const hazards = components.flatMap((c) => {
+      const el = c.element;
+      if (!el) return c.compound?.hazards ?? [];
+      return [
+        ...(el.is_radioactive ? [`${el.name} is radioactive.`] : []),
+        ...(['F', 'Cl', 'Br', 'Hg', 'Pb', 'As', 'Cd'].includes(el.symbol)
+          ? [`${el.name} presents serious toxicity or corrosivity hazards.`]
+          : []),
+        ...(el.group_number === 1 && el.symbol !== 'H'
+          ? [`${el.name} is a highly reactive alkali metal.`]
+          : []),
+      ];
+    });
+    const base: ReactionResult = {
+      status: components.length < 2 ? 'no-reaction' : 'unsupported',
+      message:
+        components.length < 2
+          ? 'Add a second element to explore a reaction.'
+          : 'No validated model for this mixture. Inputs are unchanged; this does not imply chemical inertness.',
+      products: [],
+      remaining,
+      energy_change: 0,
+      temperature_change: 0,
+      phase_transitions: this.checkPhaseTransitions(mixture),
+      hazards,
+      visual_effects: [],
+    };
+    // Exactly two distinct elemental inputs: no fabricated multi-reactant products.
+    if (components.length !== 2 || components.some((c) => !c.element)) return base;
+    const model = reactionModels.find(
+      (m) =>
+        m.atoms[0] !== m.atoms[2] &&
+        components.some((c) => c.element?.symbol === m.atoms[0]) &&
+        components.some((c) => c.element?.symbol === m.atoms[2]),
+    );
+    if (!model) return base;
+    base.equation = model.equation;
+    if (mixture.temperature < model.minTemperature) {
+      return {
+        ...base,
+        status: 'conditions-not-met',
+        message: `This educational model requires a temperature of at least ${model.minTemperature.toFixed(2)} K. No conversion was applied.`,
+      };
+    }
+    const first = components.find((c) => c.element?.symbol === model.atoms[0])!;
+    const second = components.find((c) => c.element?.symbol === model.atoms[2])!;
+    const extent = Math.min(first.moles / model.atoms[1], second.moles / model.atoms[3]);
+    const productMass =
+      extent *
+      (first.element!.atomic_mass * model.atoms[1] + second.element!.atomic_mass * model.atoms[3]);
+    const leftovers = remaining
+      .map((c) => {
+        const input = components.find((x) => x.element?.symbol === c.formula)!;
+        const coefficient = c.formula === model.atoms[0] ? model.atoms[1] : model.atoms[3];
+        const moles = Math.max(0, c.moles - coefficient * extent);
+        return { ...c, moles, mass: moles * input.element!.atomic_mass };
+      })
+      .filter((c) => c.moles > 1e-12);
+    return {
+      ...base,
+      status: 'reacted',
+      message:
+        'Idealized complete conversion of the limiting reactant. Temperature is held constant; kinetics and equilibrium are not modeled.',
+      products: [
+        {
+          formula: model.formula,
+          description: model.name,
+          mass: productMass,
+          moles: extent,
+          color: model.color,
+        },
+      ],
+      remaining: leftovers,
+      energy_change: extent * model.enthalpy,
+      hazards: [
+        ...hazards,
+        'Exothermic reaction: heat release may be hazardous.',
+        ...(model.formula === 'H2O' ? ['Hydrogen–oxygen mixtures can explode when ignited.'] : []),
+      ],
+      visual_effects: [{ type: 'heat', intensity: 0.5, duration: 1500 }],
+    };
+  }
+
+  checkPhaseTransitions(mixture: MixtureState) {
+    return mixture.components.flatMap((c) => {
+      if (!c.element) return [];
+      const el = c.element;
+      // Reference phase only: pressure-dependent phase equilibria are not modeled.
+      const to =
+        mixture.temperature >= el.boiling_point
+          ? 'gas'
+          : mixture.temperature >= el.melting_point
+            ? 'liquid'
+            : 'solid';
+      return to !== el.phase_at_stp ? [{ substance: el.symbol, from: el.phase_at_stp, to }] : [];
+    });
+  }
+
+  /** Treats component amounts as gas-particle moles supplied by the caller. */
+  calculateIdealGasProperties(mixture: MixtureState) {
+    validateMixture(mixture);
+    const moles = mixture.components.reduce((sum, c) => sum + c.moles, 0);
+    const mass = mixture.components.reduce((sum, c) => sum + c.mass, 0);
+    return {
+      pressure: (moles * R_ATM * mixture.temperature) / mixture.volume,
+      volume: mixture.volume,
+      density: mass / mixture.volume,
+      moles,
+    };
+  }
+  /** Enthalpy in kJ/mol, entropy in J/(mol K), result in kJ/mol. */
+  calculateGibbsFreeEnergy(enthalpy: number, entropy: number, temperature: number) {
+    return enthalpy - (temperature * entropy) / 1000;
+  }
+  predictSpontaneity(gibbsEnergy: number) {
+    return gibbsEnergy < 0;
+  }
+  calculateEquilibriumConstant(gibbsEnergy: number, temperature: number) {
+    if (!Number.isFinite(temperature) || temperature <= 0)
+      throw new Error('Temperature must be positive.');
+    return Math.exp((-gibbsEnergy * 1000) / (R * temperature));
+  }
+  predictBonding(a: Element, b: Element): BondingInfo {
+    if (a.electronegativity === null || b.electronegativity === null)
+      return { bond_type: 'none', bond_strength: 0, polarity: 0 };
+    const difference = Math.abs(a.electronegativity - b.electronegativity);
+    return {
+      bond_type: difference > 1.7 ? 'ionic' : 'covalent',
+      bond_strength: 0,
+      polarity: Math.min(1, difference / 1.7),
+    };
+  }
+}
 export const chemistryEngine = new ChemistryEngine();

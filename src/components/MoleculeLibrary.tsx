@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { getMolecules } from '../lib/referenceData';
+import { useState, useEffect, useMemo } from 'react';
 import { Atom, Search, Filter, Info } from 'lucide-react';
-import { Molecule, supabase } from '../lib/supabase';
+import { Molecule } from '../lib/supabase';
 
 interface MoleculeLibraryProps {
   onSelectMolecule: (molecule: Molecule) => void;
@@ -9,7 +10,6 @@ interface MoleculeLibraryProps {
 
 export function MoleculeLibrary({ onSelectMolecule, selectedMoleculeId }: MoleculeLibraryProps) {
   const [molecules, setMolecules] = useState<Molecule[]>([]);
-  const [filteredMolecules, setFilteredMolecules] = useState<Molecule[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'organic' | 'inorganic'>('all');
   const [loading, setLoading] = useState(true);
@@ -18,21 +18,11 @@ export function MoleculeLibrary({ onSelectMolecule, selectedMoleculeId }: Molecu
     loadMolecules();
   }, []);
 
-  useEffect(() => {
-    filterMolecules();
-  }, [searchTerm, filterType, molecules]);
-
   const loadMolecules = async () => {
     try {
-      const { data, error } = await supabase
-        .from('molecules')
-        .select('*')
-        .order('name');
-
-      if (error) throw error;
+      const data = await getMolecules();
       if (data) {
         setMolecules(data as Molecule[]);
-        setFilteredMolecules(data as Molecule[]);
       }
     } catch (error) {
       console.error('Error loading molecules:', error);
@@ -41,25 +31,25 @@ export function MoleculeLibrary({ onSelectMolecule, selectedMoleculeId }: Molecu
     }
   };
 
-  const filterMolecules = () => {
+  const filteredMolecules = useMemo(() => {
     let filtered = molecules;
 
     if (filterType !== 'all') {
-      filtered = filtered.filter(m => m.structure_type === filterType);
+      filtered = filtered.filter((m) => m.structure_type === filterType);
     }
 
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(
-        m =>
+        (m) =>
           m.name.toLowerCase().includes(term) ||
           m.formula.toLowerCase().includes(term) ||
-          m.functional_groups.some(g => g.toLowerCase().includes(term))
+          m.functional_groups.some((g) => g.toLowerCase().includes(term)),
       );
     }
 
-    setFilteredMolecules(filtered);
-  };
+    return filtered;
+  }, [filterType, searchTerm, molecules]);
 
   if (loading) {
     return (
@@ -84,6 +74,7 @@ export function MoleculeLibrary({ onSelectMolecule, selectedMoleculeId }: Molecu
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input
             type="text"
+            aria-label="Search molecules"
             placeholder="Search by name, formula, or functional group..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -135,6 +126,7 @@ export function MoleculeLibrary({ onSelectMolecule, selectedMoleculeId }: Molecu
           filteredMolecules.map((molecule) => (
             <button
               key={molecule.id}
+              aria-pressed={molecule.id === selectedMoleculeId}
               onClick={() => onSelectMolecule(molecule)}
               className={`text-left p-4 rounded-lg border transition-all ${
                 molecule.id === selectedMoleculeId

@@ -1,21 +1,6 @@
 import { useEffect, useState } from 'react';
 import { BookOpen, Flame, AlertCircle, Beaker } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-
-interface Recipe {
-  id: string;
-  name: string;
-  description: string;
-  category: string;
-  difficulty: string;
-  ingredients: Array<{ element_id: number; mass: number; moles: number }>;
-  temperature: number;
-  pressure: number;
-  volume: number;
-  atmosphere: string;
-  expected_products: any[];
-  safety_notes: string[];
-}
+import { getRecipes, type Recipe } from '../lib/referenceData';
 
 interface RecipesBookProps {
   onLoadRecipe: (recipe: Recipe) => void;
@@ -35,19 +20,7 @@ export function RecipesBook({ onLoadRecipe }: RecipesBookProps) {
   async function loadRecipes() {
     console.log('Loading recipes from database...');
     try {
-      const { data, error } = await supabase
-        .from('recipes')
-        .select('*')
-        .order('difficulty');
-
-      if (error) {
-        console.error('Error loading recipes:', error);
-        setError(error.message);
-        setLoading(false);
-        return;
-      }
-
-      console.log('Loaded recipes:', data?.length);
+      const data = await getRecipes();
       setRecipes(data || []);
       setLoading(false);
     } catch (err) {
@@ -57,26 +30,32 @@ export function RecipesBook({ onLoadRecipe }: RecipesBookProps) {
     }
   }
 
-  const categories = ['all', ...new Set(recipes.map(r => r.category))];
+  const categories = ['all', ...new Set(recipes.map((r) => r.category))];
 
-  const filteredRecipes = selectedCategory === 'all'
-    ? recipes
-    : recipes.filter(r => r.category === selectedCategory);
+  const filteredRecipes =
+    selectedCategory === 'all' ? recipes : recipes.filter((r) => r.category === selectedCategory);
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case 'beginner': return 'bg-green-900/30 text-green-400 border-green-500/50';
-      case 'intermediate': return 'bg-yellow-900/30 text-yellow-400 border-yellow-500/50';
-      case 'advanced': return 'bg-red-900/30 text-red-400 border-red-500/50';
-      default: return 'bg-gray-900/30 text-gray-400 border-gray-500/50';
+      case 'beginner':
+        return 'bg-green-900/30 text-green-400 border-green-500/50';
+      case 'intermediate':
+        return 'bg-yellow-900/30 text-yellow-400 border-yellow-500/50';
+      case 'advanced':
+        return 'bg-red-900/30 text-red-400 border-red-500/50';
+      default:
+        return 'bg-gray-900/30 text-gray-400 border-gray-500/50';
     }
   };
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
-      case 'Synthesis': return <Beaker className="w-4 h-4" />;
-      case 'Combustion': return <Flame className="w-4 h-4" />;
-      default: return <BookOpen className="w-4 h-4" />;
+      case 'Synthesis':
+        return <Beaker className="w-4 h-4" />;
+      case 'Combustion':
+        return <Flame className="w-4 h-4" />;
+      default:
+        return <BookOpen className="w-4 h-4" />;
     }
   };
 
@@ -116,12 +95,14 @@ export function RecipesBook({ onLoadRecipe }: RecipesBookProps) {
           <BookOpen className="w-6 h-6 text-blue-400" />
           <div>
             <h2 className="text-xl font-bold text-white">Known Recipes</h2>
-            <p className="text-xs text-gray-400">Pre-configured chemical reactions for demonstrations</p>
+            <p className="text-xs text-gray-400">
+              Pre-configured chemical reactions for demonstrations
+            </p>
           </div>
         </div>
 
         <div className="flex gap-2 flex-wrap">
-          {categories.map(category => (
+          {categories.map((category) => (
             <button
               key={category}
               onClick={() => setSelectedCategory(category)}
@@ -138,7 +119,7 @@ export function RecipesBook({ onLoadRecipe }: RecipesBookProps) {
       </div>
 
       <div className="max-h-96 overflow-y-auto p-4 space-y-3">
-        {filteredRecipes.map(recipe => (
+        {filteredRecipes.map((recipe) => (
           <div
             key={recipe.id}
             className="bg-gray-800/50 rounded-lg border border-gray-700 overflow-hidden hover:border-gray-600 transition-colors"
@@ -152,7 +133,9 @@ export function RecipesBook({ onLoadRecipe }: RecipesBookProps) {
                   </div>
                   <p className="text-xs text-gray-400">{recipe.description}</p>
                 </div>
-                <span className={`px-2 py-1 rounded text-xs border ${getDifficultyColor(recipe.difficulty)}`}>
+                <span
+                  className={`px-2 py-1 rounded text-xs border ${getDifficultyColor(recipe.difficulty)}`}
+                >
                   {recipe.difficulty}
                 </span>
               </div>
@@ -173,10 +156,14 @@ export function RecipesBook({ onLoadRecipe }: RecipesBookProps) {
                       {recipe.safety_notes[0]}
                       {recipe.safety_notes.length > 1 && (
                         <button
-                          onClick={() => setExpandedRecipe(expandedRecipe === recipe.id ? null : recipe.id)}
+                          onClick={() =>
+                            setExpandedRecipe(expandedRecipe === recipe.id ? null : recipe.id)
+                          }
                           className="ml-1 text-yellow-400 hover:underline"
                         >
-                          {expandedRecipe === recipe.id ? 'Less' : `+${recipe.safety_notes.length - 1} more`}
+                          {expandedRecipe === recipe.id
+                            ? 'Less'
+                            : `+${recipe.safety_notes.length - 1} more`}
                         </button>
                       )}
                     </div>
@@ -202,9 +189,7 @@ export function RecipesBook({ onLoadRecipe }: RecipesBookProps) {
         ))}
 
         {filteredRecipes.length === 0 && (
-          <div className="text-center text-gray-400 py-8">
-            No recipes found in this category
-          </div>
+          <div className="text-center text-gray-400 py-8">No recipes found in this category</div>
         )}
       </div>
     </div>

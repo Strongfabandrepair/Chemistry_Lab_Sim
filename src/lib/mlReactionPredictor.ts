@@ -19,7 +19,7 @@ interface ReactionPrediction {
 interface ReactionPattern {
   reactantTypes: string[];
   productTypes: string[];
-  conditions: any;
+  conditions: { temperature?: number; catalyst?: string; solvent?: string; light?: boolean };
   probability: number;
   mechanism: string;
 }
@@ -163,13 +163,13 @@ export class MLReactionPredictor {
       }
     }
 
-    return matches.sort((a, b) => b.score - a.score).map(({ score, ...pattern }) => pattern);
+    return matches.sort((a, b) => b.score - a.score).map(pattern => ({ reactantTypes: pattern.reactantTypes, productTypes: pattern.productTypes, conditions: pattern.conditions, probability: pattern.probability, mechanism: pattern.mechanism }));
   }
 
   private generateProducts(
     reactants: Array<Molecule | Element>,
     pattern: ReactionPattern,
-    conditions: any
+    _conditions: { temperature?: number; catalyst?: string; solvent?: string; light?: boolean }
   ): ReactionPrediction['products'] {
     const products: ReactionPrediction['products'] = [];
 
@@ -185,7 +185,7 @@ export class MLReactionPredictor {
     return products;
   }
 
-  private generateFormulaForType(type: string, reactants: Array<Molecule | Element>): string {
+  private generateFormulaForType(type: string, _reactants: Array<Molecule | Element>): string {
     const formulaMap: Record<string, string> = {
       'alkane': 'CnH(2n+2)',
       'alkene': 'CnH(2n)',
@@ -220,7 +220,7 @@ export class MLReactionPredictor {
 
   private predictGenericReaction(
     reactants: Array<Molecule | Element>,
-    conditions: any
+    conditions: { temperature?: number; catalyst?: string; solvent?: string; light?: boolean }
   ): ReactionPrediction {
     const hasOrganic = reactants.some(r => 'structure_type' in r && r.structure_type === 'organic');
     const hasElement = reactants.some(r => 'symbol' in r);
@@ -236,7 +236,7 @@ export class MLReactionPredictor {
         confidence: 0.6,
         reactionType: 'organic_transformation',
         conditions: {
-          temperature: conditions.temperature
+          temperature: conditions.temperature ?? 298.15
         }
       };
     }
@@ -251,7 +251,7 @@ export class MLReactionPredictor {
       confidence: 0.3,
       reactionType: 'unknown',
       conditions: {
-        temperature: conditions.temperature
+        temperature: conditions.temperature ?? 298.15
       }
     };
   }
@@ -283,7 +283,7 @@ export class MLReactionPredictor {
   learnFromReaction(
     reactants: Array<Molecule | Element>,
     products: Array<Molecule>,
-    conditions: any,
+    conditions: { temperature?: number; catalyst?: string; solvent?: string; light?: boolean },
     success: boolean
   ): void {
     const functionalGroups = this.extractFunctionalGroups(reactants);
@@ -304,7 +304,7 @@ export class MLReactionPredictor {
 
   suggestOptimalConditions(
     reactants: Array<Molecule | Element>
-  ): { temperature: number; catalyst?: string; solvent?: string } {
+  ): { temperature: number; catalyst?: string; solvent?: string; light?: boolean } {
     const functionalGroups = this.extractFunctionalGroups(reactants);
 
     if (functionalGroups.includes('aromatic')) {

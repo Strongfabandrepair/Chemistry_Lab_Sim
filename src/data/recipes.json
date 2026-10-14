@@ -1,0 +1,355 @@
+[
+  {
+    "name": "Water Formation",
+    "description": "Combine hydrogen and oxygen to form water. This is a highly exothermic reaction.",
+    "category": "Synthesis",
+    "difficulty": "intermediate",
+    "ingredients": [
+      {
+        "element_id": 1,
+        "mass": 0.202,
+        "moles": 0.1
+      },
+      {
+        "element_id": 8,
+        "mass": 1.6,
+        "moles": 0.1
+      }
+    ],
+    "temperature": 298.15,
+    "pressure": 1.0,
+    "atmosphere": "air",
+    "expected_products": [
+      {
+        "formula": "H2O",
+        "mass": 1.802,
+        "description": "Water"
+      }
+    ],
+    "safety_notes": [
+      "Explosive when ignited",
+      "Keep away from sparks",
+      "Use low quantities"
+    ],
+    "id": "local-recipes-1",
+    "volume": 1
+  },
+  {
+    "name": "Table Salt Formation",
+    "description": "Combine sodium and chlorine to create sodium chloride (table salt).",
+    "category": "Synthesis",
+    "difficulty": "beginner",
+    "ingredients": [
+      {
+        "element_id": 11,
+        "mass": 2.3,
+        "moles": 0.1
+      },
+      {
+        "element_id": 17,
+        "mass": 3.545,
+        "moles": 0.1
+      }
+    ],
+    "temperature": 298.15,
+    "pressure": 1.0,
+    "atmosphere": "air",
+    "expected_products": [
+      {
+        "formula": "NaCl",
+        "mass": 5.845,
+        "description": "Sodium Chloride"
+      }
+    ],
+    "safety_notes": [
+      "Produces bright light",
+      "Exothermic reaction",
+      "Sodium is highly reactive"
+    ],
+    "id": "local-recipes-2",
+    "volume": 1
+  },
+  {
+    "name": "Iron Rust Formation",
+    "description": "Expose iron to oxygen to form iron oxide (rust).",
+    "category": "Oxidation",
+    "difficulty": "beginner",
+    "ingredients": [
+      {
+        "element_id": 26,
+        "mass": 5.585,
+        "moles": 0.1
+      },
+      {
+        "element_id": 8,
+        "mass": 2.4,
+        "moles": 0.15
+      }
+    ],
+    "temperature": 298.15,
+    "pressure": 1.0,
+    "atmosphere": "air",
+    "expected_products": [
+      {
+        "formula": "Fe2O3",
+        "mass": 7.985,
+        "description": "Iron(III) Oxide"
+      }
+    ],
+    "safety_notes": [
+      "Slow reaction at room temperature",
+      "Increase temperature to speed up"
+    ],
+    "id": "local-recipes-3",
+    "volume": 1
+  },
+  {
+    "name": "Ammonia Synthesis",
+    "description": "Combine nitrogen and hydrogen to create ammonia via the Haber process.",
+    "category": "Synthesis",
+    "difficulty": "advanced",
+    "ingredients": [
+      {
+        "element_id": 7,
+        "mass": 2.8,
+        "moles": 0.2
+      },
+      {
+        "element_id": 1,
+        "mass": 0.606,
+        "moles": 0.6
+      }
+    ],
+    "temperature": 673.15,
+    "pressure": 200.0,
+    "atmosphere": "nitrogen",
+    "expected_products": [
+      {
+        "formula": "NH3",
+        "mass": 3.406,
+        "description": "Ammonia"
+      }
+    ],
+    "safety_notes": [
+      "Requires high pressure and temperature",
+      "Use catalyst for better yield"
+    ],
+    "id": "local-recipes-4",
+    "volume": 1
+  },
+  {
+    "name": "Carbon Dioxide Formation",
+    "description": "Combust carbon in oxygen to produce carbon dioxide.",
+    "category": "Combustion",
+    "difficulty": "beginner",
+    "ingredients": [
+      {
+        "element_id": 6,
+        "mass": 1.201,
+        "moles": 0.1
+      },
+      {
+        "element_id": 8,
+        "mass": 3.2,
+        "moles": 0.2
+      }
+    ],
+    "temperature": 500.0,
+    "pressure": 1.0,
+    "atmosphere": "oxygen",
+    "expected_products": [
+      {
+        "formula": "CO2",
+        "mass": 4.401,
+        "description": "Carbon Dioxide"
+      }
+    ],
+    "safety_notes": [
+      "Exothermic reaction",
+      "Produces heat"
+    ],
+    "id": "local-recipes-5",
+    "volume": 1
+  },
+  {
+    "name": "Copper Oxide Formation",
+    "description": "Heat copper in air to form copper(II) oxide.",
+    "category": "Oxidation",
+    "difficulty": "beginner",
+    "ingredients": [
+      {
+        "element_id": 29,
+        "mass": 6.355,
+        "moles": 0.1
+      },
+      {
+        "element_id": 8,
+        "mass": 0.8,
+        "moles": 0.05
+      }
+    ],
+    "temperature": 600.0,
+    "pressure": 1.0,
+    "atmosphere": "air",
+    "expected_products": [
+      {
+        "formula": "CuO",
+        "mass": 7.155,
+        "description": "Copper(II) Oxide"
+      }
+    ],
+    "safety_notes": [
+      "Color change from red to black",
+      "Moderate temperature required"
+    ],
+    "id": "local-recipes-6",
+    "volume": 1
+  },
+  {
+    "name": "Aluminum Oxide Formation",
+    "description": "React aluminum with oxygen to create aluminum oxide.",
+    "category": "Oxidation",
+    "difficulty": "intermediate",
+    "ingredients": [
+      {
+        "element_id": 13,
+        "mass": 5.396,
+        "moles": 0.2
+      },
+      {
+        "element_id": 8,
+        "mass": 2.4,
+        "moles": 0.15
+      }
+    ],
+    "temperature": 800.0,
+    "pressure": 1.0,
+    "atmosphere": "oxygen",
+    "expected_products": [
+      {
+        "formula": "Al2O3",
+        "mass": 7.796,
+        "description": "Aluminum Oxide"
+      }
+    ],
+    "safety_notes": [
+      "Very exothermic",
+      "Produces intense heat and light"
+    ],
+    "id": "local-recipes-7",
+    "volume": 1
+  },
+  {
+    "name": "Methane Combustion",
+    "description": "Complete combustion of carbon and hydrogen to simulate methane burning.",
+    "category": "Combustion",
+    "difficulty": "intermediate",
+    "ingredients": [
+      {
+        "element_id": 6,
+        "mass": 1.201,
+        "moles": 0.1
+      },
+      {
+        "element_id": 1,
+        "mass": 0.404,
+        "moles": 0.4
+      },
+      {
+        "element_id": 8,
+        "mass": 6.4,
+        "moles": 0.4
+      }
+    ],
+    "temperature": 600.0,
+    "pressure": 1.0,
+    "atmosphere": "oxygen",
+    "expected_products": [
+      {
+        "formula": "CO2",
+        "mass": 4.401
+      },
+      {
+        "formula": "H2O",
+        "mass": 3.604
+      }
+    ],
+    "safety_notes": [
+      "Highly exothermic",
+      "Produces flame",
+      "Ensure adequate oxygen"
+    ],
+    "id": "local-recipes-8",
+    "volume": 1
+  },
+  {
+    "name": "Magnesium Combustion",
+    "description": "Burn magnesium in oxygen to produce magnesium oxide.",
+    "category": "Combustion",
+    "difficulty": "beginner",
+    "ingredients": [
+      {
+        "element_id": 12,
+        "mass": 2.431,
+        "moles": 0.1
+      },
+      {
+        "element_id": 8,
+        "mass": 0.8,
+        "moles": 0.05
+      }
+    ],
+    "temperature": 650.0,
+    "pressure": 1.0,
+    "atmosphere": "oxygen",
+    "expected_products": [
+      {
+        "formula": "MgO",
+        "mass": 3.231,
+        "description": "Magnesium Oxide"
+      }
+    ],
+    "safety_notes": [
+      "Produces brilliant white light",
+      "Do not look directly at flame",
+      "Very exothermic"
+    ],
+    "id": "local-recipes-9",
+    "volume": 1
+  },
+  {
+    "name": "Sulfuric Acid Precursor",
+    "description": "Combine sulfur and oxygen to form sulfur dioxide (first step in sulfuric acid production).",
+    "category": "Synthesis",
+    "difficulty": "intermediate",
+    "ingredients": [
+      {
+        "element_id": 16,
+        "mass": 3.207,
+        "moles": 0.1
+      },
+      {
+        "element_id": 8,
+        "mass": 3.2,
+        "moles": 0.2
+      }
+    ],
+    "temperature": 450.0,
+    "pressure": 1.0,
+    "atmosphere": "oxygen",
+    "expected_products": [
+      {
+        "formula": "SO2",
+        "mass": 6.407,
+        "description": "Sulfur Dioxide"
+      }
+    ],
+    "safety_notes": [
+      "Toxic gas produced",
+      "Use in well-ventilated area",
+      "Causes acid rain"
+    ],
+    "id": "local-recipes-10",
+    "volume": 1
+  }
+]

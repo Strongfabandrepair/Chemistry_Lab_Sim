@@ -1,4 +1,4 @@
-import { Element, Molecule, MolecularOrbital } from './supabase';
+import { Element, MolecularOrbital } from './supabase';
 
 interface ElectronConfiguration {
   orbital: string;
@@ -15,8 +15,6 @@ interface MolecularGeometry {
 export class QuantumEngine {
   private readonly PLANCK_CONSTANT = 6.62607015e-34;
   private readonly SPEED_OF_LIGHT = 2.99792458e8;
-  private readonly BOLTZMANN_CONSTANT = 1.380649e-23;
-  private readonly AVOGADRO_NUMBER = 6.02214076e23;
 
   calculateElectronConfiguration(atomicNumber: number): ElectronConfiguration[] {
     const orbitals = [
@@ -108,7 +106,7 @@ export class QuantumEngine {
   }
 
   predictMolecularGeometry(
-    centralAtom: Element,
+    _centralAtom: Element,
     surroundingAtoms: Element[]
   ): MolecularGeometry {
     const electronPairs = surroundingAtoms.length;
@@ -212,7 +210,7 @@ export class QuantumEngine {
   }
 
   predictHybridization(
-    centralAtom: Element,
+    _centralAtom: Element,
     bondCount: number,
     lonePairs: number
   ): string {
@@ -236,7 +234,7 @@ export class QuantumEngine {
   }
 
   predictMagneticProperties(
-    totalElectrons: number,
+    _totalElectrons: number,
     orbitalOccupancy: number[]
   ): 'diamagnetic' | 'paramagnetic' {
     const unpairedElectrons = orbitalOccupancy.filter(e => e % 2 !== 0).length;

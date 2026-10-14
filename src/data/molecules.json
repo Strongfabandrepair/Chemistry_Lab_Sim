@@ -1,0 +1,367 @@
+[
+  {
+    "name": "Water",
+    "iupac_name": "Oxidane",
+    "formula": "H2O",
+    "smiles": "O",
+    "molecular_weight": 18.015,
+    "structure_type": "inorganic",
+    "geometry": "bent",
+    "functional_groups": [
+      "hydroxyl"
+    ],
+    "properties": {
+      "boiling_point": 373.15,
+      "melting_point": 273.15,
+      "polarity": "polar",
+      "soluble_in_water": true,
+      "ph": 7.0
+    },
+    "id": "local-molecules-1",
+    "bond_angles": [],
+    "safety_info": {},
+    "created_at": "",
+    "updated_at": ""
+  },
+  {
+    "name": "Methane",
+    "iupac_name": "Methane",
+    "formula": "CH4",
+    "smiles": "C",
+    "molecular_weight": 16.043,
+    "structure_type": "organic",
+    "geometry": "tetrahedral",
+    "functional_groups": [
+      "alkane"
+    ],
+    "properties": {
+      "boiling_point": 111.66,
+      "melting_point": 90.69,
+      "polarity": "nonpolar",
+      "soluble_in_water": false
+    },
+    "id": "local-molecules-2",
+    "bond_angles": [],
+    "safety_info": {},
+    "created_at": "",
+    "updated_at": ""
+  },
+  {
+    "name": "Ethanol",
+    "iupac_name": "Ethanol",
+    "formula": "C2H6O",
+    "smiles": "CCO",
+    "molecular_weight": 46.069,
+    "structure_type": "organic",
+    "geometry": "tetrahedral",
+    "functional_groups": [
+      "alcohol",
+      "hydroxyl"
+    ],
+    "properties": {
+      "boiling_point": 351.45,
+      "melting_point": 159.05,
+      "polarity": "polar",
+      "soluble_in_water": true,
+      "pka": 15.9
+    },
+    "id": "local-molecules-3",
+    "bond_angles": [],
+    "safety_info": {},
+    "created_at": "",
+    "updated_at": ""
+  },
+  {
+    "name": "Acetic Acid",
+    "iupac_name": "Ethanoic acid",
+    "formula": "C2H4O2",
+    "smiles": "CC(=O)O",
+    "molecular_weight": 60.052,
+    "structure_type": "organic",
+    "geometry": "trigonal_planar",
+    "functional_groups": [
+      "carboxylic_acid",
+      "carbonyl"
+    ],
+    "properties": {
+      "boiling_point": 391.15,
+      "melting_point": 289.75,
+      "polarity": "polar",
+      "soluble_in_water": true,
+      "pka": 4.76
+    },
+    "id": "local-molecules-4",
+    "bond_angles": [],
+    "safety_info": {},
+    "created_at": "",
+    "updated_at": ""
+  },
+  {
+    "name": "Benzene",
+    "iupac_name": "Benzene",
+    "formula": "C6H6",
+    "smiles": "c1ccccc1",
+    "molecular_weight": 78.114,
+    "structure_type": "organic",
+    "geometry": "planar",
+    "functional_groups": [
+      "aromatic"
+    ],
+    "properties": {
+      "boiling_point": 353.25,
+      "melting_point": 278.65,
+      "polarity": "nonpolar",
+      "soluble_in_water": false,
+      "resonance": true
+    },
+    "id": "local-molecules-5",
+    "bond_angles": [],
+    "safety_info": {},
+    "created_at": "",
+    "updated_at": ""
+  },
+  {
+    "name": "Acetone",
+    "iupac_name": "Propan-2-one",
+    "formula": "C3H6O",
+    "smiles": "CC(=O)C",
+    "molecular_weight": 58.08,
+    "structure_type": "organic",
+    "geometry": "trigonal_planar",
+    "functional_groups": [
+      "ketone",
+      "carbonyl"
+    ],
+    "properties": {
+      "boiling_point": 329.15,
+      "melting_point": 178.45,
+      "polarity": "polar",
+      "soluble_in_water": true
+    },
+    "id": "local-molecules-6",
+    "bond_angles": [],
+    "safety_info": {},
+    "created_at": "",
+    "updated_at": ""
+  },
+  {
+    "name": "Glucose",
+    "iupac_name": "D-Glucose",
+    "formula": "C6H12O6",
+    "smiles": "C(C1C(C(C(C(O1)O)O)O)O)O",
+    "molecular_weight": 180.156,
+    "structure_type": "organic",
+    "geometry": "chair",
+    "functional_groups": [
+      "aldehyde",
+      "polyol",
+      "hydroxyl"
+    ],
+    "properties": {
+      "boiling_point": 623.15,
+      "melting_point": 419.15,
+      "polarity": "polar",
+      "soluble_in_water": true,
+      "sweetness": true
+    },
+    "id": "local-molecules-7",
+    "bond_angles": [],
+    "safety_info": {},
+    "created_at": "",
+    "updated_at": ""
+  },
+  {
+    "name": "Ammonia",
+    "iupac_name": "Azane",
+    "formula": "NH3",
+    "smiles": "N",
+    "molecular_weight": 17.031,
+    "structure_type": "inorganic",
+    "geometry": "trigonal_pyramidal",
+    "functional_groups": [
+      "amine"
+    ],
+    "properties": {
+      "boiling_point": 239.81,
+      "melting_point": 195.42,
+      "polarity": "polar",
+      "soluble_in_water": true,
+      "basic": true
+    },
+    "id": "local-molecules-8",
+    "bond_angles": [],
+    "safety_info": {},
+    "created_at": "",
+    "updated_at": ""
+  },
+  {
+    "name": "Carbon Dioxide",
+    "iupac_name": "Carbon dioxide",
+    "formula": "CO2",
+    "smiles": "C(=O)=O",
+    "molecular_weight": 44.01,
+    "structure_type": "inorganic",
+    "geometry": "linear",
+    "functional_groups": [
+      "oxide"
+    ],
+    "properties": {
+      "boiling_point": 194.65,
+      "melting_point": 216.58,
+      "polarity": "nonpolar",
+      "soluble_in_water": true,
+      "acidic": true
+    },
+    "id": "local-molecules-9",
+    "bond_angles": [],
+    "safety_info": {},
+    "created_at": "",
+    "updated_at": ""
+  },
+  {
+    "name": "Ethylene",
+    "iupac_name": "Ethene",
+    "formula": "C2H4",
+    "smiles": "C=C",
+    "molecular_weight": 28.054,
+    "structure_type": "organic",
+    "geometry": "planar",
+    "functional_groups": [
+      "alkene",
+      "double_bond"
+    ],
+    "properties": {
+      "boiling_point": 169.42,
+      "melting_point": 103.99,
+      "polarity": "nonpolar",
+      "soluble_in_water": false
+    },
+    "id": "local-molecules-10",
+    "bond_angles": [],
+    "safety_info": {},
+    "created_at": "",
+    "updated_at": ""
+  },
+  {
+    "name": "Formaldehyde",
+    "iupac_name": "Methanal",
+    "formula": "CH2O",
+    "smiles": "C=O",
+    "molecular_weight": 30.026,
+    "structure_type": "organic",
+    "geometry": "trigonal_planar",
+    "functional_groups": [
+      "aldehyde",
+      "carbonyl"
+    ],
+    "properties": {
+      "boiling_point": 254.05,
+      "melting_point": 181.15,
+      "polarity": "polar",
+      "soluble_in_water": true
+    },
+    "id": "local-molecules-11",
+    "bond_angles": [],
+    "safety_info": {},
+    "created_at": "",
+    "updated_at": ""
+  },
+  {
+    "name": "Methanol",
+    "iupac_name": "Methanol",
+    "formula": "CH4O",
+    "smiles": "CO",
+    "molecular_weight": 32.042,
+    "structure_type": "organic",
+    "geometry": "tetrahedral",
+    "functional_groups": [
+      "alcohol",
+      "hydroxyl"
+    ],
+    "properties": {
+      "boiling_point": 337.85,
+      "melting_point": 175.49,
+      "polarity": "polar",
+      "soluble_in_water": true
+    },
+    "id": "local-molecules-12",
+    "bond_angles": [],
+    "safety_info": {},
+    "created_at": "",
+    "updated_at": ""
+  },
+  {
+    "name": "Ethyl Acetate",
+    "iupac_name": "Ethyl ethanoate",
+    "formula": "C4H8O2",
+    "smiles": "CCOC(=O)C",
+    "molecular_weight": 88.106,
+    "structure_type": "organic",
+    "geometry": "tetrahedral",
+    "functional_groups": [
+      "ester",
+      "carbonyl"
+    ],
+    "properties": {
+      "boiling_point": 350.15,
+      "melting_point": 189.55,
+      "polarity": "polar",
+      "soluble_in_water": true
+    },
+    "id": "local-molecules-13",
+    "bond_angles": [],
+    "safety_info": {},
+    "created_at": "",
+    "updated_at": ""
+  },
+  {
+    "name": "Acetylene",
+    "iupac_name": "Ethyne",
+    "formula": "C2H2",
+    "smiles": "C#C",
+    "molecular_weight": 26.038,
+    "structure_type": "organic",
+    "geometry": "linear",
+    "functional_groups": [
+      "alkyne",
+      "triple_bond"
+    ],
+    "properties": {
+      "boiling_point": 189.15,
+      "melting_point": 192.4,
+      "polarity": "nonpolar",
+      "soluble_in_water": false
+    },
+    "id": "local-molecules-14",
+    "bond_angles": [],
+    "safety_info": {},
+    "created_at": "",
+    "updated_at": ""
+  },
+  {
+    "name": "Phenol",
+    "iupac_name": "Phenol",
+    "formula": "C6H6O",
+    "smiles": "Oc1ccccc1",
+    "molecular_weight": 94.113,
+    "structure_type": "organic",
+    "geometry": "planar",
+    "functional_groups": [
+      "aromatic",
+      "alcohol",
+      "hydroxyl"
+    ],
+    "properties": {
+      "boiling_point": 454.99,
+      "melting_point": 313.95,
+      "polarity": "polar",
+      "soluble_in_water": true,
+      "pka": 9.95
+    },
+    "id": "local-molecules-15",
+    "bond_angles": [],
+    "safety_info": {},
+    "created_at": "",
+    "updated_at": ""
+  }
+]

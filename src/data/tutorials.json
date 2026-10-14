@@ -1,0 +1,256 @@
+[
+  {
+    "title": "Introduction to Chemical Reactions",
+    "description": "Learn the basics of chemical reactions and how to predict products",
+    "difficulty_level": "beginner",
+    "category": "general",
+    "steps": [
+      {
+        "step": 1,
+        "title": "Understanding Elements",
+        "content": "Click on elements in the periodic table to select them. Each element has unique properties.",
+        "action": "select_elements"
+      },
+      {
+        "step": 2,
+        "title": "Combining Elements",
+        "content": "Select Sodium (Na) and Chlorine (Cl) from the periodic table.",
+        "action": "wait_for_selection"
+      },
+      {
+        "step": 3,
+        "title": "Setting Conditions",
+        "content": "Adjust the temperature to 400K to provide activation energy.",
+        "action": "set_temperature"
+      },
+      {
+        "step": 4,
+        "title": "Run Simulation",
+        "content": "Click Run Simulation to see the reaction occur and observe the formation of NaCl.",
+        "action": "run_simulation"
+      }
+    ],
+    "objectives": [
+      "Understand what a chemical reaction is",
+      "Learn to predict simple ionic compounds",
+      "Observe energy changes in reactions"
+    ],
+    "prerequisites": [],
+    "estimated_time": 15,
+    "order_index": 1,
+    "id": "local-tutorials-1"
+  },
+  {
+    "title": "Exploring Molecular Structure",
+    "description": "Visualize 3D molecular structures and understand geometry",
+    "difficulty_level": "beginner",
+    "category": "general",
+    "steps": [
+      {
+        "step": 1,
+        "title": "3D Visualization",
+        "content": "Observe how atoms arrange in 3D space. The visualization shows particles moving based on temperature.",
+        "action": "observe"
+      },
+      {
+        "step": 2,
+        "title": "Molecular Geometry",
+        "content": "Create water (H2O) by selecting hydrogen and oxygen. Notice the bent geometry.",
+        "action": "create_water"
+      },
+      {
+        "step": 3,
+        "title": "Understanding Bonds",
+        "content": "Watch how atoms form bonds. The blue lines show bonding interactions.",
+        "action": "observe_bonds"
+      },
+      {
+        "step": 4,
+        "title": "Temperature Effects",
+        "content": "Increase temperature and see how particle motion increases.",
+        "action": "temperature_experiment"
+      }
+    ],
+    "objectives": [
+      "Understand 3D molecular structures",
+      "Recognize different geometries",
+      "See how temperature affects molecular motion"
+    ],
+    "prerequisites": [],
+    "estimated_time": 20,
+    "order_index": 2,
+    "id": "local-tutorials-2"
+  },
+  {
+    "title": "Organic Chemistry Basics",
+    "description": "Introduction to organic molecules and functional groups",
+    "difficulty_level": "intermediate",
+    "category": "organic",
+    "steps": [
+      {
+        "step": 1,
+        "title": "Carbon Chemistry",
+        "content": "Carbon forms the basis of organic chemistry with its ability to form 4 bonds.",
+        "action": "learn"
+      },
+      {
+        "step": 2,
+        "title": "Functional Groups",
+        "content": "Learn about common functional groups: alcohols, aldehydes, ketones, and carboxylic acids.",
+        "action": "explore_groups"
+      },
+      {
+        "step": 3,
+        "title": "Building Molecules",
+        "content": "Construct simple organic molecules like methanol and ethanol.",
+        "action": "build_molecules"
+      },
+      {
+        "step": 4,
+        "title": "Properties",
+        "content": "Observe how functional groups affect physical properties like boiling point and solubility.",
+        "action": "compare_properties"
+      }
+    ],
+    "objectives": [
+      "Understand carbon bonding",
+      "Identify functional groups",
+      "Predict organic molecule properties"
+    ],
+    "prerequisites": [
+      "Introduction to Chemical Reactions"
+    ],
+    "estimated_time": 25,
+    "order_index": 3,
+    "id": "local-tutorials-3"
+  },
+  {
+    "title": "Spectroscopy Fundamentals",
+    "description": "Learn how to interpret UV-Vis, IR, and NMR spectra",
+    "difficulty_level": "intermediate",
+    "category": "analytical",
+    "steps": [
+      {
+        "step": 1,
+        "title": "Introduction to Spectroscopy",
+        "content": "Spectroscopy reveals molecular structure by analyzing how molecules interact with light.",
+        "action": "learn"
+      },
+      {
+        "step": 2,
+        "title": "IR Spectroscopy",
+        "content": "IR spectra show characteristic peaks for different bonds. C=O appears around 1700 cm\u207b\u00b9.",
+        "action": "analyze_ir"
+      },
+      {
+        "step": 3,
+        "title": "UV-Vis Spectroscopy",
+        "content": "UV-Vis shows electronic transitions. Aromatic compounds absorb around 250-280 nm.",
+        "action": "analyze_uv"
+      },
+      {
+        "step": 4,
+        "title": "NMR Spectroscopy",
+        "content": "NMR reveals the hydrogen environment. Chemical shift, integration, and splitting patterns tell the structure.",
+        "action": "analyze_nmr"
+      }
+    ],
+    "objectives": [
+      "Interpret IR spectra",
+      "Understand UV-Vis absorption",
+      "Read NMR spectra"
+    ],
+    "prerequisites": [
+      "Exploring Molecular Structure"
+    ],
+    "estimated_time": 30,
+    "order_index": 4,
+    "id": "local-tutorials-4"
+  },
+  {
+    "title": "Quantum Mechanics in Chemistry",
+    "description": "Understanding electron orbitals and quantum behavior",
+    "difficulty_level": "advanced",
+    "category": "physical",
+    "steps": [
+      {
+        "step": 1,
+        "title": "Wave-Particle Duality",
+        "content": "Electrons behave as both waves and particles. This explains atomic structure.",
+        "action": "learn"
+      },
+      {
+        "step": 2,
+        "title": "Atomic Orbitals",
+        "content": "Electrons occupy orbitals (s, p, d, f) with specific shapes and energies.",
+        "action": "visualize_orbitals"
+      },
+      {
+        "step": 3,
+        "title": "Molecular Orbitals",
+        "content": "When atoms bond, atomic orbitals combine to form molecular orbitals (HOMO and LUMO).",
+        "action": "explore_mo"
+      },
+      {
+        "step": 4,
+        "title": "Electronic Transitions",
+        "content": "Light absorption promotes electrons from HOMO to LUMO, giving molecules color.",
+        "action": "simulate_transitions"
+      }
+    ],
+    "objectives": [
+      "Understand quantum mechanics basics",
+      "Visualize molecular orbitals",
+      "Explain electronic transitions"
+    ],
+    "prerequisites": [
+      "Spectroscopy Fundamentals"
+    ],
+    "estimated_time": 40,
+    "order_index": 5,
+    "id": "local-tutorials-5"
+  },
+  {
+    "title": "pH and Acid-Base Chemistry",
+    "description": "Master acids, bases, and pH calculations",
+    "difficulty_level": "intermediate",
+    "category": "general",
+    "steps": [
+      {
+        "step": 1,
+        "title": "What is pH?",
+        "content": "pH measures acidity from 0-14. pH 7 is neutral, <7 is acidic, >7 is basic.",
+        "action": "learn"
+      },
+      {
+        "step": 2,
+        "title": "Strong Acids",
+        "content": "Create hydrochloric acid (HCl) and observe complete dissociation.",
+        "action": "create_hcl"
+      },
+      {
+        "step": 3,
+        "title": "Weak Acids",
+        "content": "Create acetic acid and see partial dissociation. pKa determines acid strength.",
+        "action": "create_acetic"
+      },
+      {
+        "step": 4,
+        "title": "Titration",
+        "content": "Neutralize an acid with a base and observe the pH change.",
+        "action": "perform_titration"
+      }
+    ],
+    "objectives": [
+      "Calculate pH values",
+      "Understand strong vs weak acids",
+      "Perform virtual titrations"
+    ],
+    "prerequisites": [
+      "Introduction to Chemical Reactions"
+    ],
+    "estimated_time": 25,
+    "order_index": 6,
+    "id": "local-tutorials-6"
+  }
+]

@@ -1,5 +1,4 @@
-import { Molecule, Element, SpectroscopyData } from './supabase';
-import { quantumEngine } from './quantumEngine';
+import { Molecule, Element } from './supabase';
 
 interface Peak {
   position: number;
@@ -8,7 +7,7 @@ interface Peak {
   assignment?: string;
 }
 
-interface Spectrum {
+export interface Spectrum {
   type: 'uv_vis' | 'ir' | 'nmr' | 'mass_spec';
   peaks: Peak[];
   xAxis: { label: string; unit: string };
@@ -17,11 +16,11 @@ interface Spectrum {
 }
 
 export class SpectroscopyEngine {
-  predictUVVisSpectrum(molecule: Molecule, elements: Element[]): Spectrum {
+  predictUVVisSpectrum(molecule: Molecule, _elements: Element[]): Spectrum {
     const peaks: Peak[] = [];
 
-    const hasConjugation = molecule.functional_groups.some(g =>
-      ['aromatic', 'alkene', 'alkyne', 'carbonyl'].includes(g)
+    const hasConjugation = molecule.functional_groups.some((g) =>
+      ['aromatic', 'alkene', 'alkyne', 'carbonyl'].includes(g),
     );
 
     const hasAromatic = molecule.functional_groups.includes('aromatic');
@@ -32,7 +31,7 @@ export class SpectroscopyEngine {
         position: 254,
         intensity: 0.9,
         width: 20,
-        assignment: 'π→π* (aromatic)'
+        assignment: 'π→π* (aromatic)',
       });
 
       if (molecule.functional_groups.length > 1) {
@@ -40,7 +39,7 @@ export class SpectroscopyEngine {
           position: 280,
           intensity: 0.7,
           width: 25,
-          assignment: 'π→π* (extended conjugation)'
+          assignment: 'π→π* (extended conjugation)',
         });
       }
     }
@@ -50,7 +49,7 @@ export class SpectroscopyEngine {
         position: 280,
         intensity: 0.6,
         width: 30,
-        assignment: 'n→π* (C=O)'
+        assignment: 'n→π* (C=O)',
       });
     }
 
@@ -59,7 +58,7 @@ export class SpectroscopyEngine {
         position: 200,
         intensity: 0.8,
         width: 25,
-        assignment: 'π→π*'
+        assignment: 'π→π*',
       });
     }
 
@@ -68,7 +67,7 @@ export class SpectroscopyEngine {
         position: 180,
         intensity: 0.5,
         width: 15,
-        assignment: 'σ→σ*'
+        assignment: 'σ→σ*',
       });
     }
 
@@ -77,11 +76,11 @@ export class SpectroscopyEngine {
       peaks,
       xAxis: { label: 'Wavelength', unit: 'nm' },
       yAxis: { label: 'Absorbance', unit: 'A.U.' },
-      range: { min: 180, max: 800 }
+      range: { min: 180, max: 800 },
     };
   }
 
-  predictIRSpectrum(molecule: Molecule, elements: Element[]): Spectrum {
+  predictIRSpectrum(molecule: Molecule, _elements: Element[]): Spectrum {
     const peaks: Peak[] = [];
 
     const functionalGroups = molecule.functional_groups;
@@ -91,25 +90,28 @@ export class SpectroscopyEngine {
         position: 3350,
         intensity: 0.9,
         width: 300,
-        assignment: 'O-H stretch'
+        assignment: 'O-H stretch',
       });
 
       peaks.push({
         position: 1050,
         intensity: 0.8,
         width: 50,
-        assignment: 'C-O stretch'
+        assignment: 'C-O stretch',
       });
     }
 
-    if (functionalGroups.includes('carbonyl') || functionalGroups.includes('ketone') ||
-        functionalGroups.includes('aldehyde')) {
+    if (
+      functionalGroups.includes('carbonyl') ||
+      functionalGroups.includes('ketone') ||
+      functionalGroups.includes('aldehyde')
+    ) {
       const position = functionalGroups.includes('carboxylic_acid') ? 1710 : 1715;
       peaks.push({
         position,
         intensity: 1.0,
         width: 30,
-        assignment: 'C=O stretch'
+        assignment: 'C=O stretch',
       });
     }
 
@@ -118,7 +120,7 @@ export class SpectroscopyEngine {
         position: 3000,
         intensity: 0.95,
         width: 500,
-        assignment: 'O-H stretch (acid)'
+        assignment: 'O-H stretch (acid)',
       });
     }
 
@@ -127,14 +129,14 @@ export class SpectroscopyEngine {
         position: 3300,
         intensity: 0.7,
         width: 100,
-        assignment: 'N-H stretch'
+        assignment: 'N-H stretch',
       });
 
       peaks.push({
         position: 1600,
         intensity: 0.6,
         width: 40,
-        assignment: 'N-H bend'
+        assignment: 'N-H bend',
       });
     }
 
@@ -143,14 +145,14 @@ export class SpectroscopyEngine {
         position: 1650,
         intensity: 0.7,
         width: 30,
-        assignment: 'C=C stretch'
+        assignment: 'C=C stretch',
       });
 
       peaks.push({
         position: 3080,
         intensity: 0.5,
         width: 40,
-        assignment: '=C-H stretch'
+        assignment: '=C-H stretch',
       });
     }
 
@@ -159,14 +161,14 @@ export class SpectroscopyEngine {
         position: 2150,
         intensity: 0.6,
         width: 20,
-        assignment: 'C≡C stretch'
+        assignment: 'C≡C stretch',
       });
 
       peaks.push({
         position: 3300,
         intensity: 0.7,
         width: 30,
-        assignment: '≡C-H stretch'
+        assignment: '≡C-H stretch',
       });
     }
 
@@ -175,33 +177,37 @@ export class SpectroscopyEngine {
         position: 3030,
         intensity: 0.5,
         width: 40,
-        assignment: 'aromatic C-H stretch'
+        assignment: 'aromatic C-H stretch',
       });
 
       peaks.push({
         position: 1600,
         intensity: 0.7,
         width: 30,
-        assignment: 'aromatic C=C stretch'
+        assignment: 'aromatic C=C stretch',
       });
 
       peaks.push({
         position: 1500,
         intensity: 0.7,
         width: 30,
-        assignment: 'aromatic C=C stretch'
+        assignment: 'aromatic C=C stretch',
       });
     }
 
-    const hasCarbon = elements.some(e => e.symbol === 'C');
-    const hasHydrogen = elements.some(e => e.symbol === 'H');
+    const hasCarbon = /C(?![a-z])/.test(molecule.formula);
+    const hasHydrogen = /H(?![a-z])/.test(molecule.formula);
 
-    if (hasCarbon && hasHydrogen && peaks.filter(p => p.position > 2800 && p.position < 3000).length === 0) {
+    if (
+      hasCarbon &&
+      hasHydrogen &&
+      peaks.filter((p) => p.position > 2800 && p.position < 3000).length === 0
+    ) {
       peaks.push({
         position: 2960,
         intensity: 0.8,
         width: 50,
-        assignment: 'C-H stretch'
+        assignment: 'C-H stretch',
       });
     }
 
@@ -209,16 +215,15 @@ export class SpectroscopyEngine {
       type: 'ir',
       peaks,
       xAxis: { label: 'Wavenumber', unit: 'cm⁻¹' },
-      yAxis: { label: 'Transmittance', unit: '%' },
-      range: { min: 400, max: 4000 }
+      yAxis: { label: 'Relative absorption', unit: 'A.U.' },
+      range: { min: 400, max: 4000 },
     };
   }
 
-  predictNMRSpectrum(molecule: Molecule, elements: Element[]): Spectrum {
+  predictNMRSpectrum(molecule: Molecule, _elements: Element[]): Spectrum {
     const peaks: Peak[] = [];
 
-    const hasCarbon = elements.some(e => e.symbol === 'C');
-    const hasHydrogen = elements.some(e => e.symbol === 'H');
+    const hasHydrogen = /H(?![a-z])/.test(molecule.formula);
 
     if (!hasHydrogen) {
       return {
@@ -226,7 +231,7 @@ export class SpectroscopyEngine {
         peaks: [],
         xAxis: { label: 'Chemical Shift', unit: 'ppm' },
         yAxis: { label: 'Intensity', unit: 'A.U.' },
-        range: { min: 0, max: 14 }
+        range: { min: 0, max: 14 },
       };
     }
 
@@ -237,7 +242,7 @@ export class SpectroscopyEngine {
         position: 0.9,
         intensity: 1.0,
         width: 0.1,
-        assignment: 'CH3'
+        assignment: 'CH3',
       });
 
       if (molecule.formula.includes('C2') || molecule.formula.includes('C3')) {
@@ -245,7 +250,7 @@ export class SpectroscopyEngine {
           position: 1.3,
           intensity: 0.8,
           width: 0.1,
-          assignment: 'CH2'
+          assignment: 'CH2',
         });
       }
     }
@@ -256,28 +261,28 @@ export class SpectroscopyEngine {
           position: 1.2,
           intensity: 0.9,
           width: 0.05,
-          assignment: 'CH3 (triplet)'
+          assignment: 'CH3 (triplet)',
         });
 
         peaks.push({
           position: 3.7,
           intensity: 0.6,
           width: 0.08,
-          assignment: 'CH2 (quartet)'
+          assignment: 'CH2 (quartet)',
         });
 
         peaks.push({
           position: 5.4,
           intensity: 0.3,
           width: 0.15,
-          assignment: 'OH'
+          assignment: 'OH',
         });
       } else {
         peaks.push({
           position: 3.5,
           intensity: 0.7,
           width: 0.1,
-          assignment: 'CH-OH'
+          assignment: 'CH-OH',
         });
       }
     }
@@ -288,14 +293,14 @@ export class SpectroscopyEngine {
           position: 2.1,
           intensity: 1.0,
           width: 0.05,
-          assignment: 'CH3 (singlet)'
+          assignment: 'CH3 (singlet)',
         });
       } else {
         peaks.push({
           position: 2.0,
           intensity: 0.8,
           width: 0.1,
-          assignment: 'CH3-CO'
+          assignment: 'CH3-CO',
         });
       }
     }
@@ -306,14 +311,14 @@ export class SpectroscopyEngine {
           position: 7.3,
           intensity: 1.0,
           width: 0.05,
-          assignment: 'aromatic H (singlet)'
+          assignment: 'aromatic H (singlet)',
         });
       } else {
         peaks.push({
           position: 7.2,
           intensity: 0.8,
           width: 0.2,
-          assignment: 'aromatic H'
+          assignment: 'aromatic H',
         });
       }
     }
@@ -323,14 +328,14 @@ export class SpectroscopyEngine {
         position: 11.5,
         intensity: 0.5,
         width: 0.5,
-        assignment: 'COOH'
+        assignment: 'COOH',
       });
 
       peaks.push({
         position: 2.1,
         intensity: 0.7,
         width: 0.1,
-        assignment: 'CH3-COOH'
+        assignment: 'CH3-COOH',
       });
     }
 
@@ -339,7 +344,7 @@ export class SpectroscopyEngine {
         position: 9.7,
         intensity: 0.6,
         width: 0.1,
-        assignment: 'CHO'
+        assignment: 'CHO',
       });
     }
 
@@ -348,7 +353,7 @@ export class SpectroscopyEngine {
         position: 5.3,
         intensity: 0.7,
         width: 0.15,
-        assignment: '=CH'
+        assignment: '=CH',
       });
     }
 
@@ -357,11 +362,11 @@ export class SpectroscopyEngine {
       peaks,
       xAxis: { label: 'Chemical Shift', unit: 'ppm' },
       yAxis: { label: 'Intensity', unit: 'A.U.' },
-      range: { min: 0, max: 14 }
+      range: { min: 0, max: 14 },
     };
   }
 
-  predictMassSpectrum(molecule: Molecule, elements: Element[]): Spectrum {
+  predictMassSpectrum(molecule: Molecule, _elements: Element[]): Spectrum {
     const peaks: Peak[] = [];
 
     const molecularWeight = molecule.molecular_weight;
@@ -370,14 +375,14 @@ export class SpectroscopyEngine {
       position: molecularWeight,
       intensity: 1.0,
       width: 1,
-      assignment: 'M+ (molecular ion)'
+      assignment: 'M+ (molecular ion)',
     });
 
     const fragmentPatterns: Record<string, number[]> = {
-      'alcohol': [molecularWeight - 18, molecularWeight - 17],
-      'carbonyl': [molecularWeight - 28, molecularWeight - 29],
-      'aromatic': [77, 51],
-      'carboxylic_acid': [molecularWeight - 45, molecularWeight - 17]
+      alcohol: [molecularWeight - 18, molecularWeight - 17],
+      carbonyl: [molecularWeight - 28, molecularWeight - 29],
+      aromatic: [77, 51],
+      carboxylic_acid: [molecularWeight - 45, molecularWeight - 17],
     };
 
     for (const group of molecule.functional_groups) {
@@ -389,7 +394,7 @@ export class SpectroscopyEngine {
               position: mass,
               intensity: 0.8 - idx * 0.2,
               width: 1,
-              assignment: `fragment`
+              assignment: `fragment`,
             });
           }
         });
@@ -401,14 +406,14 @@ export class SpectroscopyEngine {
         position: Math.floor(molecularWeight / 2),
         intensity: 0.6,
         width: 1,
-        assignment: 'fragment'
+        assignment: 'fragment',
       });
 
       peaks.push({
         position: Math.floor(molecularWeight * 0.7),
         intensity: 0.4,
         width: 1,
-        assignment: 'fragment'
+        assignment: 'fragment',
       });
     }
 
@@ -416,8 +421,8 @@ export class SpectroscopyEngine {
       type: 'mass_spec',
       peaks,
       xAxis: { label: 'm/z', unit: 'Da' },
-      yAxis: { label: 'Relative Intensity', unit: '%' },
-      range: { min: 0, max: molecularWeight + 10 }
+      yAxis: { label: 'Relative intensity', unit: 'A.U.' },
+      range: { min: 0, max: molecularWeight + 10 },
     };
   }
 
@@ -432,14 +437,10 @@ export class SpectroscopyEngine {
       let yVal = 0;
 
       for (const peak of spectrum.peaks) {
-        const gaussian = peak.intensity * Math.exp(
-          -Math.pow(xVal - peak.position, 2) / (2 * Math.pow(peak.width, 2))
-        );
+        const gaussian =
+          peak.intensity *
+          Math.exp(-Math.pow(xVal - peak.position, 2) / (2 * Math.pow(peak.width, 2)));
         yVal += gaussian;
-      }
-
-      if (spectrum.type === 'ir') {
-        yVal = 100 - yVal * 100;
       }
 
       x.push(xVal);
@@ -459,7 +460,7 @@ export class SpectroscopyEngine {
     return {
       peakCount: spectrum.peaks.length,
       strongestPeak: sortedPeaks[0] || null,
-      characteristicPeaks: sortedPeaks.slice(0, 3)
+      characteristicPeaks: sortedPeaks.slice(0, 3),
     };
   }
 }

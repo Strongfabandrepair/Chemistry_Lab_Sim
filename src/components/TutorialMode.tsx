@@ -1,18 +1,30 @@
+import { getTutorials } from '../lib/referenceData';
 import { useState, useEffect } from 'react';
-import { BookOpen, ChevronRight, CheckCircle, Circle, Award, Clock } from 'lucide-react';
-import { Tutorial, supabase } from '../lib/supabase';
+import { BookOpen, ChevronRight, CheckCircle, Award, Clock } from 'lucide-react';
+import { Tutorial } from '../lib/supabase';
 
 interface TutorialModeProps {
   onClose: () => void;
-  onLoadTutorial: (tutorial: Tutorial) => void;
 }
 
-export function TutorialMode({ onClose, onLoadTutorial }: TutorialModeProps) {
+export function TutorialMode({ onClose }: TutorialModeProps) {
   const [tutorials, setTutorials] = useState<Tutorial[]>([]);
   const [selectedTutorial, setSelectedTutorial] = useState<Tutorial | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
+  const [completionNotice, setCompletionNotice] = useState('');
+  const [finished, setFinished] = useState<string[]>(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem('chemistry-tutorials') || '{}') as Record<
+        string,
+        { completed?: boolean }
+      >;
+      return Object.keys(stored).filter((id) => stored[id]?.completed);
+    } catch {
+      return [];
+    }
+  });
 
   useEffect(() => {
     loadTutorials();
@@ -20,12 +32,7 @@ export function TutorialMode({ onClose, onLoadTutorial }: TutorialModeProps) {
 
   const loadTutorials = async () => {
     try {
-      const { data, error } = await supabase
-        .from('tutorials')
-        .select('*')
-        .order('order_index', { ascending: true });
-
-      if (error) throw error;
+      const data = await getTutorials();
       if (data) setTutorials(data as Tutorial[]);
     } catch (error) {
       console.error('Error loading tutorials:', error);
@@ -38,7 +45,6 @@ export function TutorialMode({ onClose, onLoadTutorial }: TutorialModeProps) {
     setSelectedTutorial(tutorial);
     setCurrentStep(0);
     setCompletedSteps([]);
-    onLoadTutorial(tutorial);
   };
 
   const nextStep = () => {
@@ -59,26 +65,24 @@ export function TutorialMode({ onClose, onLoadTutorial }: TutorialModeProps) {
     }
   };
 
-  const completeTutorial = async () => {
+  const completeTutorial = () => {
     if (!selectedTutorial) return;
-
-    const userId = 'guest-' + Math.random().toString(36).substr(2, 9);
-
+    const completed = [...new Set([...finished, selectedTutorial.id])];
+    setFinished(completed);
+    setCompletionNotice('Guide complete. Progress saved in this browser.');
     try {
-      await supabase.from('user_progress').insert({
-        user_id: userId,
-        tutorial_id: selectedTutorial.id,
-        completed_steps: [...completedSteps, currentStep],
-        completed: true,
-        score: 100
-      });
-
-      setSelectedTutorial(null);
-      setCurrentStep(0);
-      setCompletedSteps([]);
-    } catch (error) {
-      console.error('Error saving progress:', error);
+      localStorage.setItem(
+        'chemistry-tutorials',
+        JSON.stringify(Object.fromEntries(completed.map((id) => [id, { completed: true }]))),
+      );
+    } catch {
+      setCompletionNotice(
+        'Guide complete. Browser storage is unavailable, so progress will not survive a reload.',
+      );
     }
+    setSelectedTutorial(null);
+    setCurrentStep(0);
+    setCompletedSteps([]);
   };
 
   const getDifficultyColor = (level: string) => {
@@ -96,11 +100,11 @@ export function TutorialMode({ onClose, onLoadTutorial }: TutorialModeProps) {
 
   const getCategoryColor = (category: string) => {
     const colors: Record<string, string> = {
-      'general': 'bg-blue-500/20 text-blue-400',
-      'organic': 'bg-green-500/20 text-green-400',
-      'inorganic': 'bg-purple-500/20 text-purple-400',
-      'physical': 'bg-orange-500/20 text-orange-400',
-      'analytical': 'bg-cyan-500/20 text-cyan-400'
+      general: 'bg-blue-500/20 text-blue-400',
+      organic: 'bg-green-500/20 text-green-400',
+      inorganic: 'bg-purple-500/20 text-purple-400',
+      physical: 'bg-orange-500/20 text-orange-400',
+      analytical: 'bg-cyan-500/20 text-cyan-400',
     };
     return colors[category] || 'bg-gray-500/20 text-gray-400';
   };
@@ -134,10 +138,14 @@ export function TutorialMode({ onClose, onLoadTutorial }: TutorialModeProps) {
             <div className="mb-6">
               <h1 className="text-3xl font-bold mb-2">{selectedTutorial.title}</h1>
               <div className="flex items-center gap-3 text-sm text-gray-400">
-                <span className={`px-3 py-1 rounded-full border ${getDifficultyColor(selectedTutorial.difficulty_level)}`}>
+                <span
+                  className={`px-3 py-1 rounded-full border ${getDifficultyColor(selectedTutorial.difficulty_level)}`}
+                >
                   {selectedTutorial.difficulty_level}
                 </span>
-                <span className={`px-3 py-1 rounded-full ${getCategoryColor(selectedTutorial.category)}`}>
+                <span
+                  className={`px-3 py-1 rounded-full ${getCategoryColor(selectedTutorial.category)}`}
+                >
                   {selectedTutorial.category}
                 </span>
                 <span className="flex items-center gap-1">
@@ -150,7 +158,9 @@ export function TutorialMode({ onClose, onLoadTutorial }: TutorialModeProps) {
             <div className="mb-6">
               <div className="flex justify-between text-sm text-gray-400 mb-2">
                 <span>Progress</span>
-                <span>{currentStep + 1} / {selectedTutorial.steps.length}</span>
+                <span>
+                  {currentStep + 1} / {selectedTutorial.steps.length}
+                </span>
               </div>
               <div className="w-full bg-gray-800 rounded-full h-2">
                 <div
@@ -168,14 +178,14 @@ export function TutorialMode({ onClose, onLoadTutorial }: TutorialModeProps) {
                 <h2 className="text-2xl font-bold">{step.title}</h2>
               </div>
 
-              <p className="text-lg text-gray-300 leading-relaxed mb-6">
-                {step.content}
-              </p>
+              <p className="text-lg text-gray-300 leading-relaxed mb-6">{step.content}</p>
 
               {step.action && (
                 <div className="bg-blue-900/30 border border-blue-500/30 rounded-lg p-4">
-                  <div className="text-sm text-blue-400 font-semibold mb-1">Action Required:</div>
-                  <div className="text-sm text-gray-300">{step.action}</div>
+                  <div className="text-sm text-blue-400 font-semibold mb-1">
+                    Suggested exploration (self-guided):
+                  </div>
+                  <div className="text-sm text-gray-300">{step.action.replace(/_/g, ' ')}</div>
                 </div>
               )}
             </div>
@@ -212,13 +222,15 @@ export function TutorialMode({ onClose, onLoadTutorial }: TutorialModeProps) {
               {selectedTutorial.steps.map((_, index) => (
                 <button
                   key={index}
+                  aria-label={`Go to step ${index + 1}`}
+                  aria-current={index === currentStep ? 'step' : undefined}
                   onClick={() => setCurrentStep(index)}
                   className={`w-3 h-3 rounded-full transition-all ${
                     index === currentStep
                       ? 'bg-blue-500 w-6'
                       : completedSteps.includes(index)
-                      ? 'bg-green-500'
-                      : 'bg-gray-600'
+                        ? 'bg-green-500'
+                        : 'bg-gray-600'
                   }`}
                 />
               ))}
@@ -243,19 +255,28 @@ export function TutorialMode({ onClose, onLoadTutorial }: TutorialModeProps) {
           <div className="flex items-center gap-3 mb-4">
             <BookOpen className="w-10 h-10 text-blue-400" />
             <div>
-              <h1 className="text-4xl font-bold">Educational Mode</h1>
-              <p className="text-gray-400">Interactive chemistry tutorials</p>
+              <h2 className="text-3xl font-bold">Learning guides</h2>
+              <p className="text-gray-400">
+                Self-guided chemistry concepts · progress stored locally
+              </p>
             </div>
           </div>
         </div>
 
+        {completionNotice && (
+          <p role="status" className="model-banner">
+            {completionNotice}
+          </p>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {tutorials.map((tutorial) => (
-            <div
+            <button
+              type="button"
               key={tutorial.id}
-              className="bg-gray-900/50 backdrop-blur rounded-lg p-6 border border-gray-700 hover:border-blue-500 transition-all cursor-pointer group"
+              className="bg-gray-900/50 backdrop-blur rounded-lg p-6 border border-gray-700 hover:border-blue-500 transition-all cursor-pointer group text-left"
               onClick={() => startTutorial(tutorial)}
             >
+              {finished.includes(tutorial.id) && <span className="draft-tag mb-3">Completed</span>}
               <div className="flex items-start justify-between mb-4">
                 <h3 className="text-xl font-bold group-hover:text-blue-400 transition-colors">
                   {tutorial.title}
@@ -263,15 +284,17 @@ export function TutorialMode({ onClose, onLoadTutorial }: TutorialModeProps) {
                 <ChevronRight className="w-6 h-6 text-gray-600 group-hover:text-blue-400 transition-colors" />
               </div>
 
-              <p className="text-sm text-gray-400 mb-4 line-clamp-3">
-                {tutorial.description}
-              </p>
+              <p className="text-sm text-gray-400 mb-4 line-clamp-3">{tutorial.description}</p>
 
               <div className="flex flex-wrap gap-2 mb-4">
-                <span className={`px-2 py-1 rounded text-xs border ${getDifficultyColor(tutorial.difficulty_level)}`}>
+                <span
+                  className={`px-2 py-1 rounded text-xs border ${getDifficultyColor(tutorial.difficulty_level)}`}
+                >
                   {tutorial.difficulty_level}
                 </span>
-                <span className={`px-2 py-1 rounded text-xs ${getCategoryColor(tutorial.category)}`}>
+                <span
+                  className={`px-2 py-1 rounded text-xs ${getCategoryColor(tutorial.category)}`}
+                >
                   {tutorial.category}
                 </span>
               </div>
@@ -286,7 +309,9 @@ export function TutorialMode({ onClose, onLoadTutorial }: TutorialModeProps) {
 
               {tutorial.objectives.length > 0 && (
                 <div className="mt-4 pt-4 border-t border-gray-700">
-                  <div className="text-xs font-semibold text-gray-400 mb-2">Learning Objectives:</div>
+                  <div className="text-xs font-semibold text-gray-400 mb-2">
+                    Learning Objectives:
+                  </div>
                   <ul className="text-xs text-gray-500 space-y-1">
                     {tutorial.objectives.slice(0, 2).map((obj, idx) => (
                       <li key={idx} className="flex items-start gap-2">
@@ -297,7 +322,7 @@ export function TutorialMode({ onClose, onLoadTutorial }: TutorialModeProps) {
                   </ul>
                 </div>
               )}
-            </div>
+            </button>
           ))}
         </div>
       </div>

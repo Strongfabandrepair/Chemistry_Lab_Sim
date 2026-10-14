@@ -3,11 +3,15 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
-}
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Invalid placeholder configuration must not prevent the offline lab from starting.
+export const supabase = (() => {
+  if (!supabaseUrl || !supabaseAnonKey || !/^https?:\/\//.test(supabaseUrl)) return null;
+  try {
+    return createClient(supabaseUrl, supabaseAnonKey);
+  } catch {
+    return null;
+  }
+})();
 
 export interface Element {
   id: number;
@@ -41,7 +45,7 @@ export interface Compound {
   formula: string;
   name: string;
   molecular_mass: number;
-  structure: any;
+  structure: unknown;
   melting_point: number;
   boiling_point: number;
   density: number;
@@ -82,8 +86,8 @@ export interface Experiment {
   pressure: number;
   volume: number;
   atmosphere: string;
-  results: any;
-  visual_state: any;
+  results: unknown;
+  visual_state: unknown;
   created_at: string;
   updated_at: string;
 }
@@ -108,7 +112,7 @@ export interface Molecule {
   molecular_weight: number;
   structure_type: 'organic' | 'inorganic' | 'coordination';
   geometry: string | null;
-  bond_angles: any[];
+  bond_angles: unknown[];
   functional_groups: string[];
   properties: {
     boiling_point?: number;
@@ -116,12 +120,12 @@ export interface Molecule {
     polarity?: string;
     soluble_in_water?: boolean;
     pka?: number;
-    [key: string]: any;
+    [key: string]: unknown;
   };
   safety_info: {
     hazards?: string[];
     toxicity?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   };
   created_at: string;
   updated_at: string;
@@ -134,7 +138,7 @@ export interface MolecularOrbital {
   energy_level: number;
   orbital_name: string;
   electron_count: number;
-  visualization_data: any;
+  visualization_data: unknown;
 }
 
 export interface SpectroscopyData {
@@ -147,12 +151,12 @@ export interface SpectroscopyData {
     chemical_shift?: number;
     intensity: number | string;
     assignment?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   }>;
   conditions: {
     solvent?: string;
     temperature?: number;
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 
@@ -167,7 +171,7 @@ export interface Tutorial {
     title: string;
     content: string;
     action: string;
-    [key: string]: any;
+    [key: string]: unknown;
   }>;
   objectives: string[];
   prerequisites: string[];
